@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/*
+ * Cores da marca NAAP.
+ * Para ajustar a identidade visual, altere apenas os valores abaixo.
+ */
+:root {
+  --naap-primary: #2f5d62;       /* cor principal (botões, cabeçalho) */
+  --naap-primary-dark: #1f4044;  /* hover / textos de destaque */
+  --naap-accent: #c9a66b;        /* detalhes */
+  --naap-soft: #eef4f3;          /* fundos suaves */
+  --background: #f8faf9;
+  --foreground: #1d2b2d;
+  --muted: #5f6f71;
+  --border: #d9e3e2;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--naap-primary);
+  --color-primary-dark: var(--naap-primary-dark);
+  --color-accent: var(--naap-accent);
+  --color-soft: var(--naap-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--border);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 bg-primary text-white hover:bg-primary-dark;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 border border-line bg-white text-foreground hover:bg-soft;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 border border-red-200 bg-white text-red-700 hover:bg-red-50;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium;
+  }
+  .card {
+    @apply rounded-xl border border-line bg-white p-5 shadow-sm;
+  }
+  .table {
+    @apply w-full text-left text-sm;
+  }
+  .table th {
+    @apply border-b border-line px-3 py-2 font-medium text-muted;
+  }
+  .table td {
+    @apply border-b border-line px-3 py-2 align-top;
+  }
+}

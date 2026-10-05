@@ -85,17 +85,26 @@ Para mudar as **cores**, edite o início de `src/app/globals.css`. Para usar o *
 
 ---
 
-## Desenvolvimento
+## Rodar na sua máquina (demonstração)
 
-Requer Node.js 20.9+ e Docker.
+Pré-requisitos: [Node.js 20 ou mais novo](https://nodejs.org) e [Docker Desktop](https://www.docker.com/products/docker-desktop/) **aberto**.
 
 ```bash
+cd mentorias-naap
 npm install
-npx supabase start            # sobe banco, login e armazenamento locais
-cp .env.example .env.local    # preencha com os dados que o comando acima mostra
-npm run dev                   # http://localhost:3000
+npm run local:start                 # 1ª vez demora (baixa o banco local)
+npm run local:env                   # cria o .env.local automaticamente
+npm run demo:seed -- https://youtu.be/SEU_VIDEO   # dados de exemplo (o link é opcional)
+npm run dev                         # abra http://localhost:3000
 ```
 
-Localmente, os e-mails podem ir para o Mailpit do Supabase (`SMTP_HOST=127.0.0.1`, `SMTP_PORT=54325`), com visualização em http://127.0.0.1:54324.
+Logins de demonstração (senha `naap2026`):
+- Administração: `coordenacao@naappsicologia.com.br`
+- Aluna: `maria.souza@email.com` (ou `ana.costa@email.com`)
+
+Os e-mails enviados pelo sistema ficam numa caixa de teste em http://127.0.0.1:54324, e o painel do banco em http://127.0.0.1:54323.
+Para recomeçar do zero, rode `npm run demo:seed` de novo. Ao terminar, `npm run local:stop` desliga o banco local.
+
+## Desenvolvimento
 
 Tecnologias: Next.js 16 (App Router), Supabase (Postgres, Auth e Storage, com regras de RLS), Tailwind CSS 4 e Nodemailer.

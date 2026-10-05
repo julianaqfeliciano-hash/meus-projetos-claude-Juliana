@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "local:start": "supabase start",
+    "local:stop": "supabase stop",
+    "local:env": "node scripts/setup-local.mjs",
+    "demo:seed": "node --env-file=.env.local scripts/demo-seed.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

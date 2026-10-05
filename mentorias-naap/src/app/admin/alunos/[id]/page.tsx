@@ -33,7 +33,7 @@ export default async function StudentPage(props: PageProps<"/admin/alunos/[id]">
 
       <section className="card flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-primary-dark">{student.full_name || "(sem nome)"}</h1>
+          <h1 className="text-2xl font-bold text-primary">{student.full_name || "(sem nome)"}</h1>
           <p className="text-sm text-muted">{student.email} · {student.phone}</p>
           <p className="mt-2 text-sm">
             <StatusBadge status={student.status} />{" "}

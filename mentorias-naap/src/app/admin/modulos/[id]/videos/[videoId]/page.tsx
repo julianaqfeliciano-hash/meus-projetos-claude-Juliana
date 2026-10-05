@@ -16,7 +16,7 @@ export default async function VideoAdminPage(props: PageProps<"/admin/modulos/[i
   return (
     <div className="space-y-6">
       <Link href={`/admin/modulos/${id}`} className="text-sm text-primary hover:underline">← Voltar ao módulo</Link>
-      <h1 className="text-2xl font-semibold text-primary-dark">{video.title}</h1>
+      <h1 className="text-2xl font-bold text-primary">{video.title}</h1>
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card">
           <h2 className="mb-4 font-semibold">Dados do vídeo</h2>

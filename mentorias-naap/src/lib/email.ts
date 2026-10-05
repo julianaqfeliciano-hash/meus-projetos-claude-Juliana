@@ -21,14 +21,14 @@ function escapeHtml(text: string) {
 
 function layout(title: string, body: string, cta?: { label: string; href: string }) {
   const button = cta
-    ? `<p style="margin:28px 0"><a href="${cta.href}" style="background:#2f5d62;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">${escapeHtml(cta.label)}</a></p>`
+    ? `<p style="margin:28px 0"><a href="${cta.href}" style="background:#0c7483;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">${escapeHtml(cta.label)}</a></p>`
     : "";
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1d2b2d">
-  <h2 style="color:#2f5d62">${escapeHtml(title)}</h2>
+  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1c3238">
+  <h2 style="color:#0c7483">${escapeHtml(title)}</h2>
   ${body}
   ${button}
-  <hr style="border:none;border-top:1px solid #d9e3e2;margin:28px 0" />
-  <p style="font-size:12px;color:#5f6f71">${escapeHtml(brand.name)} · ${escapeHtml(brand.email)} · ${escapeHtml(brand.phone)}</p>
+  <hr style="border:none;border-top:1px solid #d5e7eb;margin:28px 0" />
+  <p style="font-size:12px;color:#5d7177">${escapeHtml(brand.name)} · ${escapeHtml(brand.email)} · ${escapeHtml(brand.phone)}</p>
 </div>`;
 }
 

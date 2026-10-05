@@ -32,7 +32,7 @@ export default async function ModulePage(props: PageProps<"/mentorias/[id]">) {
     <div className="space-y-6">
       <Link href="/mentorias" className="text-sm text-primary hover:underline">← Minhas mentorias</Link>
       <div>
-        <h1 className="text-2xl font-semibold text-primary-dark">{mod.title}</h1>
+        <h1 className="text-2xl font-bold text-primary">{mod.title}</h1>
         {mod.description && <p className="mt-1 whitespace-pre-line text-muted">{mod.description}</p>}
       </div>
 

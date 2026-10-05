@@ -13,7 +13,7 @@ export default async function PendingPage() {
   const refused = profile.status === "rejected" || profile.status === "blocked";
   return (
     <div className="mx-auto max-w-lg card p-8 text-center">
-      <h1 className="text-2xl font-semibold text-primary-dark">
+      <h1 className="text-2xl font-bold text-primary">
         {refused ? "Acesso não liberado" : "Cadastro recebido!"}
       </h1>
       <p className="mt-3 text-muted">

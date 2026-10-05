@@ -18,7 +18,7 @@ export default async function ModuleAdminPage(props: PageProps<"/admin/modulos/[
   return (
     <div className="space-y-6">
       <Link href="/admin/modulos" className="text-sm text-primary hover:underline">← Módulos</Link>
-      <h1 className="text-2xl font-semibold text-primary-dark">{mod.title}</h1>
+      <h1 className="text-2xl font-bold text-primary">{mod.title}</h1>
 
       <section className="card overflow-x-auto">
         <h2 className="mb-3 font-semibold">Vídeos</h2>

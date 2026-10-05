@@ -42,7 +42,7 @@ export default async function ReportsPage(props: PageProps<"/admin">) {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-primary-dark">Relatórios</h1>
+          <h1 className="text-2xl font-bold text-primary">Relatórios</h1>
           <p className="text-sm text-muted">Visão geral de alunos, vendas presenciais e audiência das mentorias.</p>
         </div>
         <form className="flex flex-wrap items-end gap-2 text-sm">
@@ -220,7 +220,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   return (
     <div className="card">
       <p className="text-xs font-medium text-muted uppercase">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-primary-dark">{value}</p>
+      <p className="mt-1 text-2xl font-bold text-primary">{value}</p>
       {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
     </div>
   );

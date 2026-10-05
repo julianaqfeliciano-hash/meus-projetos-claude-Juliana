@@ -17,12 +17,12 @@ export default async function ModulesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-primary-dark">Módulos de mentoria</h1>
+      <h1 className="text-2xl font-bold text-primary">Módulos de mentoria</h1>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {(modules ?? []).map((m) => (
           <Link key={m.id} href={`/admin/modulos/${m.id}`} className="card block hover:border-primary">
             <div className="flex items-start justify-between gap-2">
-              <h2 className="font-semibold text-primary-dark">{m.title}</h2>
+              <h2 className="font-bold text-primary">{m.title}</h2>
               {!m.published && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">Rascunho</span>}
             </div>
             <p className="mt-2 text-sm text-muted">

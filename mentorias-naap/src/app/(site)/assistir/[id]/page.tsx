@@ -44,7 +44,7 @@ export default async function WatchPage(props: PageProps<"/assistir/[id]">) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-primary-dark">{video.title}</h1>
+          <h1 className="text-xl font-bold text-primary">{video.title}</h1>
           <p className="text-sm text-muted">
             {video.recorded_on && <>Gravado em {formatDate(video.recorded_on)}</>}
             {start > 0 && <> · Continuando de onde você parou</>}

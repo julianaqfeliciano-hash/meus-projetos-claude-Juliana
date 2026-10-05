@@ -22,7 +22,7 @@ export default async function StudentsPage(props: PageProps<"/admin/alunos">) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-primary-dark">Alunos</h1>
+      <h1 className="text-2xl font-bold text-primary">Alunos</h1>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <nav className="flex flex-wrap gap-1 text-sm">
           {filters.map((f) => (

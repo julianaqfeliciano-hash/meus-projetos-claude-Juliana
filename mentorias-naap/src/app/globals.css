@@ -1,18 +1,21 @@
 @import "tailwindcss";
 
 /*
- * Cores da marca NAAP.
+ * Cores da marca NAAP (extraídas de naappsicologia.com.br).
  * Para ajustar a identidade visual, altere apenas os valores abaixo.
  */
 :root {
-  --naap-primary: #2f5d62;       /* cor principal (botões, cabeçalho) */
-  --naap-primary-dark: #1f4044;  /* hover / textos de destaque */
-  --naap-accent: #c9a66b;        /* detalhes */
-  --naap-soft: #eef4f3;          /* fundos suaves */
-  --background: #f8faf9;
-  --foreground: #1d2b2d;
-  --muted: #5f6f71;
-  --border: #d9e3e2;
+  --naap-brand: #04a7c1;         /* ciano do logo */
+  --naap-brand-light: #00b5cb;   /* destaques, sublinhado do menu */
+  --naap-primary: #0c7483;       /* botões e títulos (contraste AA com branco) */
+  --naap-primary-dark: #095c68;  /* hover */
+  --naap-hero-from: #0295ac;     /* degradê do banner */
+  --naap-hero-to: #0f8191;
+  --naap-soft: #e6f6f9;          /* fundos suaves */
+  --background: #f5fafb;
+  --foreground: #1c3238;
+  --muted: #5d7177;
+  --border: #d5e7eb;
 }
 
 @theme inline {
@@ -20,18 +23,31 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--naap-primary);
   --color-primary-dark: var(--naap-primary-dark);
-  --color-accent: var(--naap-accent);
+  --color-accent: var(--naap-brand);
+  --color-brand: var(--naap-brand);
+  --color-brand-light: var(--naap-brand-light);
   --color-soft: var(--naap-soft);
   --color-muted: var(--muted);
   --color-line: var(--border);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Arial, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+
+/* Faixa em degradê, como o banner do site do NAAP. */
+.hero {
+  background: linear-gradient(120deg, var(--naap-hero-from), var(--naap-hero-to));
 }
 
 @layer components {
@@ -41,6 +57,9 @@ body {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 bg-primary text-white hover:bg-primary-dark;
   }
+  .btn-light {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-primary shadow-lg shadow-black/15 transition hover:bg-soft;
+  }
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 border border-line bg-white text-foreground hover:bg-soft;
   }
@@ -48,13 +67,13 @@ body {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 border border-red-200 bg-white text-red-700 hover:bg-red-50;
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+    @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/25;
   }
   .label {
     @apply mb-1 block text-sm font-medium;
   }
   .card {
-    @apply rounded-xl border border-line bg-white p-5 shadow-sm;
+    @apply rounded-2xl border border-line bg-white p-5 shadow-sm;
   }
   .table {
     @apply w-full text-left text-sm;

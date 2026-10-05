@@ -26,11 +26,12 @@ export default async function MyModulesPage() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="text-2xl font-semibold text-primary-dark">
+      <div className="hero relative overflow-hidden rounded-3xl px-6 py-8 text-white sm:px-10">
+        <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 h-52 w-52 rounded-full border-[8px] border-white/15" />
+        <h1 className="relative text-2xl font-bold sm:text-3xl">
           Olá, {profile.full_name.split(" ")[0] || "aluno(a)"}!
         </h1>
-        <p className="text-muted">Estas são as mentorias liberadas para você.</p>
+        <p className="relative mt-1 text-white/90">Estas são as mentorias liberadas para você.</p>
       </div>
 
       {mine.length === 0 ? (
@@ -48,13 +49,13 @@ export default async function MyModulesPage() {
             }).length;
             return (
               <Link key={m.id} href={`/mentorias/${m.id}`} className="card block transition hover:border-primary hover:shadow-md">
-                <h2 className="font-semibold text-primary-dark">{m.title}</h2>
+                <h2 className="font-bold text-primary">{m.title}</h2>
                 {m.description && <p className="mt-1 line-clamp-3 text-sm text-muted">{m.description}</p>}
                 <p className="mt-4 text-xs text-muted">
                   {list.length} {list.length === 1 ? "vídeo" : "vídeos"} · {done} concluído{done === 1 ? "" : "s"}
                 </p>
                 <div className="mt-2 h-1.5 rounded-full bg-soft">
-                  <div className="h-1.5 rounded-full bg-primary" style={{ width: `${percent(done, list.length)}%` }} />
+                  <div className="h-1.5 rounded-full bg-brand" style={{ width: `${percent(done, list.length)}%` }} />
                 </div>
               </Link>
             );
@@ -64,7 +65,7 @@ export default async function MyModulesPage() {
 
       {others.length > 0 && (
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-primary-dark">Outros módulos disponíveis</h2>
+          <h2 className="mb-3 text-lg font-bold text-primary">Outros módulos disponíveis</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((m) => (
               <div key={m.id} className="card bg-soft/40">

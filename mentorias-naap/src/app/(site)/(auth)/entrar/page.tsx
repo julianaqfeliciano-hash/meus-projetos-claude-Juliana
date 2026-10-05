@@ -16,7 +16,7 @@ export default async function SignInPage(props: PageProps<"/entrar">) {
   const notice = typeof motivo === "string" ? reasons[motivo] : undefined;
   return (
     <AuthCard title="Entrar" subtitle="Acesse a área de mentorias do NAAP.">
-      {notice && <p className="mb-4 rounded-lg bg-soft px-3 py-2 text-sm text-primary-dark">{notice}</p>}
+      {notice && <p className="mb-4 rounded-lg bg-soft px-3 py-2 text-sm text-primary">{notice}</p>}
       <SignInForm />
     </AuthCard>
   );

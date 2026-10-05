@@ -10,7 +10,7 @@ export default async function AccountPage() {
   const { profile } = await requireUser();
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-semibold text-primary-dark">Minha conta</h1>
+      <h1 className="text-2xl font-bold text-primary">Minha conta</h1>
       <section className="card space-y-4">
         <h2 className="font-semibold">Dados pessoais</h2>
         <p className="text-sm text-muted">E-mail: {profile.email}</p>

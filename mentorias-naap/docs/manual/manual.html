@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Manual de uso — Mentorias NAAP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand: #04a7c1; --brand-light: #00b5cb; --primary: #0c7483; --primary-dark: #095c68;
+    --hero-from: #0295ac; --hero-to: #0f8191; --soft: #e6f6f9; --fg: #1c3238; --muted: #5d7177;
+    --line: #d5e7eb; --warn-bg: #fff7e6; --warn: #b45309; --mark: #f59e0b;
+  }
+  @page { size: A4; margin: 18mm 16mm 20mm; }
+  @page :first { margin: 0; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: "IBM Plex Sans", Arial, sans-serif; color: var(--fg); font-size: 10.5pt; line-height: 1.55; }
+  h1, h2, h3 { color: var(--primary); line-height: 1.25; letter-spacing: -0.01em; }
+  h1 { font-size: 22pt; margin: 0 0 4mm; }
+  h2 { font-size: 14pt; margin: 8mm 0 2.5mm; padding-top: 1mm; break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 5mm 0 1.5mm; break-after: avoid; }
+  p { margin: 0 0 2.5mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.2mm; }
+  a { color: var(--primary); }
+  b, strong { font-weight: 600; }
+  .ui { display: inline-block; padding: 0 2mm; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-weight: 600; font-size: 9.5pt; color: var(--primary); white-space: nowrap; }
+  .n { display: inline-flex; width: 5mm; height: 5mm; border-radius: 50%; background: var(--mark); color: #fff; font-size: 8pt; font-weight: 700; align-items: center; justify-content: center; vertical-align: 1px; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 9pt; background: var(--soft); padding: 0.3mm 1.2mm; border-radius: 3px; }
+  pre { font-family: ui-monospace, Menlo, monospace; font-size: 8.8pt; background: #10282d; color: #e6f6f9; padding: 3mm 4mm; border-radius: 6px; white-space: pre-wrap; break-inside: avoid; }
+
+  /* Capa */
+  .cover { height: 297mm; width: 210mm; background: linear-gradient(135deg, var(--hero-from), var(--hero-to)); color: #fff; position: relative; overflow: hidden; padding: 28mm 22mm; display: flex; flex-direction: column; break-after: page; }
+  .cover .ring { position: absolute; border-radius: 50%; border: 12px solid rgba(255,255,255,.14); }
+  .cover h1 { color: #fff; font-size: 34pt; margin-top: auto; }
+  .cover .sub { font-size: 14pt; opacity: .92; max-width: 140mm; }
+  .cover .meta { margin-top: 18mm; font-size: 10pt; opacity: .85; }
+  .cover .personas { display: flex; gap: 4mm; margin-top: 10mm; }
+  .cover .personas span { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.35); border-radius: 20px; padding: 1.5mm 4mm; font-size: 10pt; }
+
+  .chapter { break-before: page; }
+  .chapter-head { background: linear-gradient(120deg, var(--hero-from), var(--hero-to)); color: #fff; border-radius: 10px; padding: 7mm 8mm; margin-bottom: 5mm; position: relative; overflow: hidden; }
+  .chapter-head h1 { color: #fff; margin: 0; }
+  .chapter-head p { margin: 1.5mm 0 0; opacity: .92; }
+  .chapter-head .tag { font-size: 9pt; text-transform: uppercase; letter-spacing: .08em; opacity: .85; }
+  .chapter-head::after { content: ""; position: absolute; right: -18mm; top: -18mm; width: 55mm; height: 55mm; border-radius: 50%; border: 8px solid rgba(255,255,255,.15); }
+
+  figure { margin: 3mm 0 4mm; break-inside: avoid; text-align: center; }
+  figure img { max-width: 100%; max-height: 120mm; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 4px rgba(12,116,131,.12); }
+  figure.tall img { max-height: 150mm; }
+  figure.small img { max-height: 85mm; }
+  figcaption { font-size: 8.8pt; color: var(--muted); margin-top: 1.5mm; }
+  .pair { display: flex; gap: 6mm; justify-content: center; align-items: flex-start; break-inside: avoid; }
+  .pair figure { flex: 0 0 auto; }
+
+  .box { border-radius: 8px; padding: 3mm 4mm; margin: 3mm 0; break-inside: avoid; }
+  .tip { background: var(--soft); border-left: 4px solid var(--brand); }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--mark); }
+  .box b:first-child { color: var(--primary); }
+  .warn b:first-child { color: var(--warn); }
+
+  .task { }
+  .steps { counter-reset: s; list-style: none; padding-left: 0; }
+  .steps > li { counter-increment: s; position: relative; padding-left: 9mm; }
+  .steps > li::before { content: counter(s); position: absolute; left: 0; top: .3mm; width: 6mm; height: 6mm; border-radius: 50%; background: var(--primary); color: #fff; font-size: 8.5pt; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.5pt; break-inside: auto; }
+  thead, tr:first-child { break-after: avoid; }
+  th { text-align: left; color: var(--muted); font-weight: 500; border-bottom: 1.5px solid var(--line); padding: 1.5mm 2mm; }
+  td { border-bottom: 1px solid var(--line); padding: 1.8mm 2mm; vertical-align: top; }
+  tr { break-inside: avoid; }
+
+  .toc { columns: 1; }
+  .toc ol { list-style: none; padding: 0; }
+  .toc > ol > li { margin: 3mm 0 1mm; font-weight: 600; color: var(--primary); }
+  .toc ol ol { font-weight: 400; color: var(--fg); padding-left: 6mm; columns: 2; column-gap: 8mm; }
+  .toc ol ol li { margin: .6mm 0; break-inside: avoid; }
+
+  .flow { display: flex; align-items: stretch; gap: 0; font-size: 8.5pt; margin: 4mm 0 6mm; break-inside: avoid; }
+  .flow .st { flex: 1; hyphens: none; word-break: normal; background: #fff; border: 1.5px solid var(--line); border-radius: 8px; padding: 3mm; font-size: 9pt; text-align: center; }
+  .flow .st b { display: block; color: var(--primary); font-size: 9.5pt; margin-bottom: 1mm; }
+  .flow .who { display: inline-block; font-size: 7.5pt; text-transform: uppercase; letter-spacing: .05em; padding: .3mm 2mm; border-radius: 10px; margin-bottom: 1.5mm; }
+  .who.al { background: var(--soft); color: var(--primary); }
+  .who.ad { background: #0c7483; color: #fff; }
+  .flow .ar { width: 4mm; display: flex; align-items: center; justify-content: center; color: var(--brand); font-size: 14pt; }
+
+  .personas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin: 4mm 0; }
+  .personas-grid div { border: 1.5px solid var(--line); border-radius: 8px; padding: 3.5mm; font-size: 9.5pt; break-inside: avoid; }
+  .personas-grid h3 { margin: 0 0 1.5mm; }
+  .check li { list-style: "☐  "; }
+  .compact table { font-size: 8.8pt; }
+  .compact td, .compact th { padding: 1.2mm 2mm; }
+  .compact h2 { margin-top: 6mm; }
+</style>
+</head>
+<body>
+
+<!-- ============================== CAPA ============================== -->
+<section class="cover">
+  <div class="ring" style="width:150mm;height:150mm;right:-55mm;top:-45mm"></div>
+  <div class="ring" style="width:90mm;height:90mm;right:20mm;bottom:-40mm;background:rgba(255,255,255,.08);border:none"></div>
+  <svg viewBox="0 0 170 94" style="width:78mm" aria-label="NAAP">
+    <g fill="#fff"><circle cx="78" cy="14" r="9"/><circle cx="94" cy="11" r="8.5"/><circle cx="70" cy="21" r="6.5"/><circle cx="87" cy="22" r="7.5"/><circle cx="100" cy="19" r="6.5"/><circle cx="70.5" cy="30" r="2"/><circle cx="68" cy="33.5" r="1.3"/></g>
+    <g fill="none" stroke="#0295ac" stroke-width=".9" opacity=".85"><circle cx="92" cy="15" r="7"/><circle cx="96" cy="20" r="5.5"/><circle cx="84" cy="11" r="6"/></g>
+    <g fill="none" stroke="#fff" stroke-width="5.6"><path d="M6.8 63V40.5L29 62V40"/><path d="M40 63L57.5 39.5L75 63M47 55.5H68"/><path d="M82 63L99.5 39.5L117 63M89 55.5H110"/><path d="M131 63V41.8H150.5A7.9 7.9 0 0 1 150.5 57.6H131"/></g>
+    <text x="4" y="76" fill="#fff" font-size="6.3" font-family="IBM Plex Sans, Arial">Núcleo de Atendimento e Avaliação Psicológica</text>
+    <text x="4" y="85" fill="#fff" font-size="6.3" font-family="IBM Plex Sans, Arial">CRP 11/316</text>
+  </svg>
+  <h1>Manual de uso<br />Mentorias NAAP</h1>
+  <p class="sub">Como alunos, administração e responsável técnico usam a plataforma de mentorias gravadas: do cadastro ao relatório.</p>
+  <div class="personas"><span>Aluno(a)</span><span>Administração</span><span>Responsável técnico</span></div>
+  <p class="meta">Versão 1.0 · outubro de 2026 · mentoriasnaap.com.br</p>
+</section>
+
+<!-- ============================== SUMÁRIO ============================== -->
+<section class="toc">
+  <h1>Sumário</h1>
+  <ol>
+    <li>1. Visão geral
+      <ol><li>1.1 Para que serve</li><li>1.2 Quem usa (perfis)</li><li>1.3 Como tudo se conecta</li><li>1.4 Conceitos importantes</li></ol>
+    </li>
+    <li>2. Guia do Aluno
+      <ol><li>2.1 Criar a conta</li><li>2.2 Aguardar a aprovação</li><li>2.3 Entrar na plataforma</li><li>2.4 Esqueci minha senha</li><li>2.5 Ver minhas mentorias</li><li>2.6 Assistir a um vídeo</li><li>2.7 Baixar o material em PDF</li><li>2.8 Assistir pelo celular</li><li>2.9 Um aparelho por vez</li><li>2.10 Minha conta: dados e senha</li><li>2.11 Sair</li></ol>
+    </li>
+    <li>3. Guia da Administração
+      <ol><li>3.1 Entrar e conhecer o menu</li><li>3.2 Criar um usuário (aluno)</li><li>3.3 Aprovar ou recusar cadastros</li><li>3.4 Criar um módulo (tópico de mentoria)</li><li>3.5 Editar, ordenar, publicar ou excluir um módulo</li><li>3.6 Enviar a gravação ao YouTube</li><li>3.7 Adicionar um vídeo novo</li><li>3.8 Anexar, trocar ou remover o PDF</li><li>3.9 Editar, ocultar ou excluir um vídeo</li><li>3.10 Registrar uma venda e desbloquear módulos</li><li>3.11 Liberar um módulo sem venda (cortesia)</li><li>3.12 Remover o acesso a um módulo</li><li>3.13 Excluir uma venda registrada</li><li>3.14 Bloquear e desbloquear um aluno</li><li>3.15 Ficha do aluno</li><li>3.16 Relatórios</li><li>3.17 Exportar para Excel (CSV)</li><li>3.18 Rotina a cada mentoria</li></ol>
+    </li>
+    <li>4. Guia do Responsável técnico
+      <ol><li>4.1 Colocar o sistema no ar</li><li>4.2 Criar a conta de administrador</li><li>4.3 Tarefas que exigem o painel do Supabase</li><li>4.4 Custos e manutenção</li></ol>
+    </li>
+    <li>5. Perguntas frequentes e solução de problemas</li>
+    <li>6. Referência rápida: “Quero… → Onde faço”</li>
+  </ol>
+</section>
+
+<!-- ============================== 1. VISÃO GERAL ============================== -->
+<section class="chapter">
+  <div class="chapter-head"><span class="tag">Capítulo 1</span><h1>Visão geral</h1><p>O que a plataforma faz e como as peças se encaixam.</p></div>
+
+  <h2>1.1 Para que serve</h2>
+  <p>A plataforma <b>Mentorias NAAP</b> guarda as gravações das mentorias de psicologia realizadas pelo NAAP e as disponibiliza apenas para quem comprou o acesso. A compra é feita <b>presencialmente</b>; o sistema não tem carrinho nem pagamento on-line. A administração registra a venda e o sistema libera os vídeos na hora.</p>
+  <ul>
+    <li>Os vídeos ficam no YouTube como <b>não listados</b> e são exibidos dentro do site, com marca d'água do NAAP.</li>
+    <li>As gravações são organizadas em <b>módulos</b>. O aluno pode comprar um ou vários módulos.</li>
+    <li>O acesso <b>não expira</b>.</li>
+    <li>Cada conta pode ficar conectada em <b>apenas um aparelho por vez</b>.</li>
+  </ul>
+
+  <h2>1.2 Quem usa (perfis)</h2>
+  <div class="personas-grid">
+    <div><h3>Aluno(a)</h3>Cria a conta, espera a aprovação e assiste às mentorias dos módulos comprados. Baixa os PDFs de apoio. <br /><i>Capítulo 2.</i></div>
+    <div><h3>Administração</h3>Uma pessoa do NAAP que aprova cadastros, cria módulos, publica vídeos, registra vendas e acompanha os relatórios. <br /><i>Capítulo 3.</i></div>
+    <div><h3>Responsável técnico</h3>Quem coloca o sistema no ar e cuida das contas de hospedagem (Supabase, Vercel, domínio e e-mail). Atua só de vez em quando. <br /><i>Capítulo 4.</i></div>
+  </div>
+
+  <h2>1.3 Como tudo se conecta</h2>
+  <div class="flow">
+    <div class="st"><span class="who al">Aluno</span><b>Cadastro</b>no site, com e-mail e senha</div><div class="ar">→</div>
+    <div class="st"><span class="who ad">Administração</span><b>Registra a venda</b>escolhe os módulos comprados; o aluno é aprovado</div><div class="ar">→</div>
+    <div class="st"><span class="who ad">Administração</span><b>Publica vídeos</b>após cada mentoria; alunos recebem e-mail</div><div class="ar">→</div>
+    <div class="st"><span class="who al">Aluno</span><b>Assiste</b>no computador ou celular, quando quiser</div><div class="ar">→</div>
+    <div class="st"><span class="who ad">Administração</span><b>Acompanha</b>vendas e audiência nos relatórios</div>
+  </div>
+
+  <div style="break-inside: avoid">
+  <h2>1.4 Conceitos importantes</h2>
+  <table>
+    <tr><th style="width:28%">Termo</th><th>O que significa</th></tr>
+    <tr><td><b>Módulo</b></td><td>Um tópico de mentoria (por exemplo, “Avaliação Psicológica”) que agrupa vários vídeos. É a unidade de venda: o aluno compra módulos.</td></tr>
+    <tr><td><b>Vídeo</b></td><td>A gravação de uma mentoria, ligada a um módulo. Aponta para um vídeo não listado do YouTube e pode ter um PDF anexo.</td></tr>
+    <tr><td><b>Publicado / Rascunho</b></td><td>Módulos e vídeos em <i>rascunho</i> ficam invisíveis para os alunos. Só o que está <i>publicado</i> aparece.</td></tr>
+    <tr><td><b>Venda presencial</b></td><td>Registro feito pela administração com aluno, módulos, valor, forma de pagamento e data. Ao ser registrada, libera os módulos.</td></tr>
+    <tr><td><b>Acesso</b></td><td>A permissão de um aluno para assistir a um módulo. Nasce de uma venda ou de uma liberação de cortesia.</td></tr>
+    <tr><td><b>Situação do aluno</b></td><td><b>Aguardando aprovação</b>: acabou de se cadastrar, ainda não assiste a nada. <br /><b>Aprovado</b>: pode entrar e assistir aos módulos liberados. <br /><b>Recusado</b>: cadastro não aceito. <br /><b>Bloqueado</b>: perdeu o acesso (por exemplo, por compartilhar a conta).</td></tr>
+  </table>
+  </div>
+  <div class="box tip"><b>Importante:</b> para assistir a um vídeo, o aluno precisa estar <b>aprovado</b> e ter <b>acesso ao módulo</b>, e o módulo e o vídeo precisam estar <b>publicados</b>. Se faltar qualquer um desses itens, o vídeo não aparece.</div>
+</section>
+
+<!-- ============================== 2. ALUNO ============================== -->
+<section class="chapter">
+  <div class="chapter-head"><span class="tag">Capítulo 2 · Perfil: Aluno(a)</span><h1>Guia do Aluno</h1><p>Do cadastro à primeira mentoria assistida. Este capítulo pode ser enviado aos alunos.</p></div>
+
+  <div class="task">
+  <h2>2.1 Criar a conta</h2>
+  <ol class="steps">
+    <li>Acesse <b>mentoriasnaap.com.br</b> e clique em <span class="ui">Criar minha conta</span> (ou em <span class="ui">Cadastre-se</span>, no topo).</li>
+    <li>Preencha <b>nome completo</b> <span class="n">1</span>, <b>e-mail</b>, <b>telefone com DDD</b> <span class="n">2</span> e uma <b>senha</b> de pelo menos 8 caracteres, repetindo-a no campo ao lado <span class="n">3</span>.</li>
+    <li>Leia e marque o aceite dos <b>Termos de uso</b> e da <b>Política de privacidade</b> <span class="n">4</span>.</li>
+    <li>Clique em <span class="ui">Criar conta</span> <span class="n">5</span>.</li>
+  </ol>
+  <figure class="tall"><img src="img/a-cadastro.jpg" /><figcaption>Tela de cadastro.</figcaption></figure>
+  </div>
+
+  <div class="task">
+  <h2>2.2 Aguardar a aprovação</h2>
+  <p>Depois do cadastro aparece a tela abaixo. A administração do NAAP recebe um aviso por e-mail, confere a compra e aprova o acesso. Quando isso acontecer, o aluno recebe o e-mail <b>“Seu acesso às Mentorias NAAP foi aprovado”</b>.</p>
+  <figure class="small"><img src="img/a-aguardando.jpg" /><figcaption>Cadastro recebido, aguardando aprovação.</figcaption></figure>
+  <div class="box tip"><b>Dica:</b> se o e-mail não chegar, olhe a caixa de spam ou simplesmente tente entrar no site. Se já estiver aprovado, você verá suas mentorias.</div>
+  </div>
+
+  <div class="task">
+  <h2>2.3 Entrar na plataforma</h2>
+  <ol class="steps">
+    <li>Acesse o site e clique em <span class="ui">Entrar</span>.</li>
+    <li>Digite o <b>e-mail</b> <span class="n">1</span> e a <b>senha</b> <span class="n">2</span> do cadastro e clique em <span class="ui">Entrar</span>.</li>
+    <li>Você é levado para <b>Minhas mentorias</b>. Se ainda não foi aprovado, verá a tela de “aguardando aprovação”.</li>
+  </ol>
+  <figure><img src="img/a-entrar.jpg" /><figcaption>Tela de entrada. Em <span class="n">3</span> fica o link “Esqueci minha senha”.</figcaption></figure>
+  </div>
+
+  <div class="task">
+  <h2>2.4 Esqueci minha senha</h2>
+  <ol class="steps">
+    <li>Na tela de entrada, clique em <span class="ui">Esqueci minha senha</span>.</li>
+    <li>Informe o e-mail do cadastro e clique em <span class="ui">Enviar link</span>.</li>
+    <li>Abra o e-mail recebido e clique no link. Ele leva à tela <b>Criar nova senha</b>.</li>
+    <li>Digite a nova senha duas vezes e clique em <span class="ui">Salvar senha</span>. Pronto: você já está conectado.</li>
+  </ol>
+  <div class="box warn"><b>Atenção:</b> o link vale por pouco tempo e só pode ser usado uma vez. Se aparecer “O link expirou ou já foi usado”, peça um novo.</div>
+  </div>
+
+  <div class="task">
+  <h2>2.5 Ver minhas mentorias</h2>
+  <p>A página <b>Minhas mentorias</b> mostra:</p>
+  <ul>
+    <li><b>Módulos liberados para você</b>, com a quantidade de vídeos, quantos você já concluiu e uma barra de progresso.</li>
+    <li><b>Outros módulos disponíveis</b>, com cadeado 🔒. Para comprá-los, fale com o NAAP pelo telefone indicado.</li>
+  </ul>
+  <p>Clique em um módulo liberado para ver a lista de vídeos. Cada vídeo mostra a data da mentoria, a duração, se tem material em PDF (📎) e quanto você já assistiu. Vídeos concluídos (90% ou mais) ganham um ✓.</p>
+  <figure><img src="img/a-mentorias.jpg" /><figcaption>Minhas mentorias: módulo liberado e módulo bloqueado.</figcaption></figure>
+  <figure><img src="img/a-modulo.jpg" /><figcaption>Lista de vídeos de um módulo, com o progresso de cada um.</figcaption></figure>
+  </div>
+
+  <div class="task">
+  <h2>2.6 Assistir a um vídeo</h2>
+  <ol class="steps">
+    <li>Clique no vídeo desejado. O player abre com a marca d'água do NAAP.</li>
+    <li>Use os controles do próprio player para dar play, pausar, ajustar o volume e a velocidade.</li>
+    <li>Para ampliar, use o botão <span class="ui">⛶ Tela cheia</span> <span class="n">1</span> no canto superior direito. Para voltar, clique em <span class="ui">Sair da tela cheia</span> ou aperte <code>Esc</code>.</li>
+    <li>Ao terminar, clique em <span class="ui">Próximo vídeo →</span> (aparece quando há um próximo vídeo no módulo).</li>
+  </ol>
+  <figure><img src="img/a-assistir.jpg" /><figcaption>Página do vídeo: <span class="n">1</span> tela cheia, <span class="n">2</span> material em PDF.</figcaption></figure>
+  <div class="box tip"><b>Continuar de onde parou:</b> o sistema lembra até onde você assistiu. Ao voltar ao vídeo, ele começa desse ponto, e aparece “Continuando de onde você parou”.</div>
+  </div>
+
+  <div class="task">
+  <h2>2.7 Baixar o material em PDF</h2>
+  <p>Quando a mentoria tem material de apoio, aparece um botão com o clipe 📎 e o nome do material <span class="n">2</span>, ao lado do título do vídeo. Clique nele: o PDF abre em outra aba, de onde pode ser salvo ou impresso.</p>
+  </div>
+
+  <div class="task">
+  <h2>2.8 Assistir pelo celular</h2>
+  <p>O site funciona no navegador do celular (Chrome, Safari etc.), sem instalar aplicativo. Entre com o mesmo e-mail e senha.</p>
+  <div class="pair">
+    <figure class="small"><img src="img/a-mentorias-celular.jpg" style="max-height:110mm" /><figcaption>Minhas mentorias no celular.</figcaption></figure>
+    <figure class="small"><img src="img/a-assistir-celular.jpg" style="max-height:110mm" /><figcaption>Vídeo no celular.</figcaption></figure>
+  </div>
+  <div class="box tip"><b>Dica para iPhone:</b> o botão <span class="ui">Tela cheia</span> faz o vídeo ocupar a tela inteira. Gire o aparelho para a horizontal para aproveitar melhor.</div>
+  </div>
+
+  <div class="task">
+  <h2>2.9 Um aparelho por vez</h2>
+  <p>O acesso é pessoal. Se a mesma conta entrar em outro aparelho ou navegador, a sessão anterior é encerrada e aparece a mensagem abaixo. Basta entrar de novo no aparelho que você estiver usando.</p>
+  <figure class="small"><img src="img/a-outra-sessao.jpg" /><figcaption>Aviso exibido quando a conta foi aberta em outro aparelho.</figcaption></figure>
+  <div class="box warn"><b>Atenção:</b> compartilhar a conta é proibido pelos Termos de uso e pode levar ao bloqueio do acesso.</div>
+  </div>
+
+  <div class="task">
+  <h2>2.10 Minha conta: dados e senha</h2>
+  <p>No menu, clique em <span class="ui">Minha conta</span>. Lá você pode:</p>
+  <ul>
+    <li><b>Corrigir o nome e o telefone</b> e clicar em <span class="ui">Salvar</span>.</li>
+    <li><b>Trocar a senha</b>: digite a nova senha duas vezes e clique em <span class="ui">Salvar senha</span>.</li>
+    <li>Ver como pedir uma <b>cópia ou a exclusão dos seus dados</b> (LGPD).</li>
+  </ul>
+  <figure class="small"><img src="img/a-conta.jpg" /><figcaption>Minha conta.</figcaption></figure>
+  <p>O e-mail não pode ser alterado por esta tela. Para trocar, fale com o NAAP.</p>
+  </div>
+
+  <h2>2.11 Sair</h2>
+  <p>Clique em <span class="ui">Sair</span>, no canto superior direito. Faça isso sempre que usar um computador compartilhado.</p>
+</section>
+
+<!-- ============================== 3. ADMINISTRAÇÃO ============================== -->
+<section class="chapter">
+  <div class="chapter-head"><span class="tag">Capítulo 3 · Perfil: Administração</span><h1>Guia da Administração</h1><p>Todas as tarefas do dia a dia: alunos, módulos, vídeos, vendas e relatórios.</p></div>
+
+  <div class="task">
+  <h2>3.1 Entrar e conhecer o menu</h2>
+  <p>Entre pela mesma tela dos alunos (<b>Entrar</b>), com o e-mail de administrador. Você vai direto para os <b>Relatórios</b>. O menu superior tem quatro áreas:</p>
+  <figure><img src="img/b-relatorios-menu.jpg" /><figcaption>Menu da administração.</figcaption></figure>
+  <table>
+    <tr><th style="width:8%">#</th><th style="width:22%">Área</th><th>Para que serve</th></tr>
+    <tr><td><span class="n">1</span></td><td><b>Relatórios</b></td><td>Indicadores de vendas, alunos e audiência; exportação para Excel. Também avisa quando há cadastros esperando aprovação.</td></tr>
+    <tr><td><span class="n">2</span></td><td><b>Alunos</b></td><td>Aprovar, recusar e bloquear alunos; abrir a ficha de cada um; liberar e remover módulos.</td></tr>
+    <tr><td><span class="n">3</span></td><td><b>Módulos</b></td><td>Criar e editar os tópicos de mentoria; adicionar vídeos e PDFs.</td></tr>
+    <tr><td><span class="n">4</span></td><td><b>Vendas</b></td><td>Registrar vendas presenciais (o que libera os módulos) e ver o histórico.</td></tr>
+  </table>
+  </div>
+
+  <div class="task">
+  <h2>3.2 Criar um usuário (aluno)</h2>
+  <p>As contas de aluno são criadas pelo <b>cadastro do site</b>, porque a senha é pessoal. Há duas formas:</p>
+  <h3>Forma A — o próprio aluno se cadastra (recomendada)</h3>
+  <ol class="steps">
+    <li>Envie ao aluno o link <b>mentoriasnaap.com.br/cadastro</b>, por WhatsApp, por exemplo.</li>
+    <li>O aluno preenche o cadastro (veja a seção 2.1). Você recebe o e-mail <b>“Novo cadastro aguardando aprovação”</b>.</li>
+    <li>Registre a venda (seção 3.10). Isso aprova o aluno e libera os módulos de uma vez.</li>
+  </ol>
+  <h3>Forma B — a administração cadastra pelo aluno (por exemplo, na hora da compra)</h3>
+  <ol class="steps">
+    <li>Abra uma <b>janela anônima</b> no navegador (Chrome: <code>Ctrl+Shift+N</code>; Safari: <code>Cmd+Shift+N</code>). Assim você não sai da sua conta de administradora.</li>
+    <li>Acesse <b>mentoriasnaap.com.br/cadastro</b> e preencha com os dados do aluno e uma <b>senha provisória</b>. Marque o aceite dos termos junto com o aluno.</li>
+    <li>Feche a janela anônima e, na sua conta, registre a venda (seção 3.10).</li>
+    <li>Informe ao aluno o e-mail e a senha provisória e peça que ele a troque em <span class="ui">Minha conta</span> (seção 2.10).</li>
+  </ol>
+  <div class="box warn"><b>Atenção:</b> a venda só pode ser registrada <b>depois</b> que o aluno tiver uma conta, porque o formulário de venda lista apenas alunos já cadastrados.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.3 Aprovar ou recusar cadastros</h2>
+  <ol class="steps">
+    <li>Clique em <span class="ui">Alunos</span> e no filtro <span class="ui">Aguardando aprovação</span> <span class="n">1</span>. Nos <b>Relatórios</b>, o aviso amarelo “cadastro(s) aguardando aprovação” leva à mesma lista.</li>
+    <li>Para liberar o login, clique em <span class="ui">Aprovar</span> <span class="n">2</span>. O aluno recebe o e-mail de aprovação.</li>
+    <li>Se não reconhecer a pessoa, clique em <span class="ui">Recusar</span> <span class="n">3</span>.</li>
+    <li>Em <span class="ui">Abrir</span> <span class="n">4</span> você vê a ficha completa do aluno.</li>
+  </ol>
+  <figure><img src="img/b-alunos-pendentes.jpg" /><figcaption>Lista de alunos filtrada por “Aguardando aprovação”.</figcaption></figure>
+  <div class="box tip"><b>Dica:</b> aprovar não libera módulos sozinho. O aluno aprovado sem módulos vê a mensagem “Nenhum módulo liberado ainda”. O caminho mais prático é registrar a venda (seção 3.10), que aprova e libera de uma vez.</div>
+  <p>Use a busca (nome ou e-mail) e os filtros <b>Aprovado</b>, <b>Bloqueado</b>, <b>Recusado</b> e <b>Todos</b> para encontrar qualquer aluno. Um aluno recusado por engano pode ser aprovado depois, pelo filtro <b>Recusado</b>.</p>
+  </div>
+
+  <div class="task">
+  <h2>3.4 Criar um módulo (tópico de mentoria)</h2>
+  <ol class="steps">
+    <li>Clique em <span class="ui">Módulos</span>. No quadro <b>Novo módulo</b>, preencha o <b>título</b> <span class="n">1</span>, por exemplo “Módulo 4 — Psicologia Organizacional”.</li>
+    <li>Escreva uma <b>descrição</b> curta <span class="n">2</span>. Ela aparece para os alunos.</li>
+    <li>Em <b>Ordem</b> <span class="n">3</span>, informe a posição na lista (1, 2, 3…). Os números menores aparecem primeiro.</li>
+    <li>Deixe <b>Publicado</b> <span class="n">4</span> marcado para os alunos verem o módulo, ou desmarque para prepará-lo em rascunho.</li>
+    <li>Clique em <span class="ui">Criar módulo</span> <span class="n">5</span>. Você é levado à página do módulo, onde adiciona os vídeos.</li>
+  </ol>
+  <figure><img src="img/b-modulos.jpg" /><figcaption>Lista de módulos e formulário “Novo módulo”.</figcaption></figure>
+  <div class="box tip"><b>Dica:</b> módulos publicados aparecem com cadeado para quem não comprou, o que funciona como vitrine. Use o rascunho para módulos que ainda não estão à venda.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.5 Editar, ordenar, publicar ou excluir um módulo</h2>
+  <ol class="steps">
+    <li>Em <span class="ui">Módulos</span>, clique no cartão do módulo.</li>
+    <li>No quadro <b>Dados do módulo</b> (à direita), altere o título, a descrição, a ordem ou a opção <b>Publicado</b> e clique em <span class="ui">Salvar módulo</span>.</li>
+    <li>Para apagar o módulo, clique em <span class="ui">Excluir módulo</span> e confirme.</li>
+  </ol>
+  <div class="box warn"><b>Atenção:</b> excluir um módulo apaga também todos os seus vídeos, os PDFs e os acessos dos alunos a ele, e não pode ser desfeito. Os vídeos continuam no YouTube. Se quiser apenas esconder o módulo, desmarque <b>Publicado</b>.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.6 Enviar a gravação ao YouTube (não listado)</h2>
+  <ol class="steps">
+    <li>Acesse <b>studio.youtube.com</b> com a conta do NAAP e clique em <span class="ui">Criar</span> → <span class="ui">Enviar vídeos</span>.</li>
+    <li>Selecione o arquivo da gravação e preencha o título.</li>
+    <li>Na etapa <b>Visibilidade</b>, escolha <b>Não listado</b>. Não escolha “Privado”, porque o vídeo privado não toca dentro do site.</li>
+    <li>Confira se a opção <b>Permitir incorporação</b> está ativa (em “Mais opções”; ela vem ativada por padrão).</li>
+    <li>Conclua e copie o <b>link do vídeo</b> (botão de copiar ao lado do link, algo como <code>https://youtu.be/AbCdEfGhIjK</code>).</li>
+  </ol>
+  <div class="box tip"><b>Dica:</b> um vídeo de cerca de 2 horas pode levar um tempo para processar no YouTube. Você pode cadastrá-lo no site logo após copiar o link.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.7 Adicionar um vídeo novo ao módulo</h2>
+  <ol class="steps">
+    <li>Clique em <span class="ui">Módulos</span> e abra o módulo desejado.</li>
+    <li>No quadro <b>Adicionar vídeo</b>, preencha o <b>título</b> <span class="n">1</span>, por exemplo “Mentoria 18/10 — Devolutiva ao paciente”.</li>
+    <li>Cole o <b>link do YouTube</b> <span class="n">2</span>. Funciona com qualquer formato de link do YouTube.</li>
+    <li>Informe a <b>data da mentoria</b> <span class="n">3</span> e, se quiser, a duração em minutos, a ordem e uma descrição.</li>
+    <li>Mantenha <b>Publicado</b> marcado e deixe <b>Avisar por e-mail os alunos deste módulo</b> <span class="n">4</span> marcado para avisar quem comprou.</li>
+    <li>Clique em <span class="ui">Adicionar vídeo</span> <span class="n">5</span>. Aparece a confirmação “Vídeo salvo. Aviso enviado por e-mail para N aluno(s)”.</li>
+  </ol>
+  <figure class="tall"><img src="img/b-modulo-detalhe.jpg" /><figcaption>Página do módulo: lista de vídeos e formulário “Adicionar vídeo”. Em <span class="n">6</span>, “Editar / PDF”.</figcaption></figure>
+  <div class="box warn"><b>Sobre o aviso por e-mail:</b> o e-mail vai apenas para alunos <b>aprovados</b> que têm acesso ao módulo, e só se o <b>módulo estiver publicado</b>. Cada vídeo dispara o aviso <b>uma única vez</b>. Se você salvou o vídeo em rascunho, o aviso sai quando você editá-lo, marcar <b>Publicado</b> e salvar com o aviso marcado.</div>
+  <p>Para conferir como o aluno vê o vídeo, clique em <span class="ui">Ver</span> na lista de vídeos. As visualizações da administração não entram nos relatórios.</p>
+  </div>
+
+  <div class="task">
+  <h2>3.8 Anexar, trocar ou remover o PDF de um vídeo</h2>
+  <ol class="steps">
+    <li>Na lista de vídeos do módulo, clique em <span class="ui">Editar / PDF</span> no vídeo desejado.</li>
+    <li>No quadro <b>Material em PDF</b>, clique em <span class="ui">Anexar PDF</span> (ou <span class="ui">Substituir PDF</span> <span class="n">1</span>) e escolha o arquivo no computador.</li>
+    <li>Aguarde “Enviando…”. Quando terminar, aparece “Arquivo atual: …”. O nome do arquivo vira o nome do botão que o aluno vê.</li>
+    <li>Para tirar o material, clique em <span class="ui">Remover PDF</span> <span class="n">2</span> e confirme.</li>
+  </ol>
+  <figure><img src="img/b-video-editar.jpg" /><figcaption>Edição do vídeo: <span class="n">1</span> substituir PDF, <span class="n">2</span> remover PDF, <span class="n">3</span> publicado, <span class="n">4</span> excluir vídeo.</figcaption></figure>
+  <div class="box tip"><b>Regras do arquivo:</b> somente PDF, com até 50 MB. Dê ao arquivo um nome amigável (ex.: “Roteiro do laudo.pdf”) antes de enviar. O PDF fica protegido: só quem tem acesso ao módulo consegue abrir.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.9 Editar, ocultar ou excluir um vídeo</h2>
+  <ul>
+    <li><b>Editar</b> (título, link, data, descrição, ordem): <span class="ui">Editar / PDF</span> → altere → <span class="ui">Salvar vídeo</span>.</li>
+    <li><b>Ocultar</b> sem apagar: desmarque <b>Publicado</b> <span class="n">3</span> e salve. O vídeo some para os alunos, mas o histórico de quem assistiu fica guardado.</li>
+    <li><b>Excluir</b>: clique em <span class="ui">Excluir vídeo</span> <span class="n">4</span> e confirme. O progresso dos alunos nesse vídeo também é apagado. O vídeo continua no YouTube.</li>
+    <li><b>Trocar a gravação</b>: envie a nova versão ao YouTube e cole o novo link no campo do YouTube.</li>
+  </ul>
+  </div>
+
+  <div class="task">
+  <h2>3.10 Registrar uma venda e desbloquear módulos</h2>
+  <p>Esta é a forma principal de <b>desbloquear um módulo para um aluno</b>. Pode ser feita pelo menu <b>Vendas</b> ou pela ficha do aluno.</p>
+  <ol class="steps">
+    <li>Clique em <span class="ui">Vendas</span>. No quadro <b>Registrar nova venda</b>, escolha o <b>aluno</b> <span class="n">1</span>, que precisa estar cadastrado.</li>
+    <li>Marque os <b>módulos comprados</b> <span class="n">2</span>. Pode marcar vários.</li>
+    <li>Informe o <b>valor total</b> pago <span class="n">3</span> (ex.: <code>400</code> ou <code>350,50</code>; use <code>0</code> para bolsas) e a <b>forma de pagamento</b> <span class="n">4</span>. Ajuste a <b>data</b> se a venda foi em outro dia e, se quiser, escreva uma observação.</li>
+    <li>Deixe marcado <b>Aprovar o cadastro do aluno</b> se ele ainda estiver aguardando. Ele será aprovado e receberá o e-mail.</li>
+    <li>Clique em <span class="ui">Registrar venda e liberar módulos</span> <span class="n">5</span>. Os módulos ficam disponíveis para o aluno <b>na hora</b>.</li>
+  </ol>
+  <figure class="tall"><img src="img/b-vendas.jpg" /><figcaption>Tela de Vendas: formulário e histórico das últimas vendas.</figcaption></figure>
+  <div class="box tip"><b>Pela ficha do aluno:</b> em <span class="ui">Alunos</span> → <span class="ui">Abrir</span>, o quadro <b>Registrar venda presencial</b> funciona do mesmo jeito, já com o aluno escolhido.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.11 Liberar um módulo sem venda (cortesia)</h2>
+  <p>Para dar acesso sem registrar valor (por exemplo, para um convidado ou para corrigir um engano):</p>
+  <ol class="steps">
+    <li>Abra a ficha do aluno: <span class="ui">Alunos</span> → <span class="ui">Abrir</span>.</li>
+    <li>No quadro <b>Acesso aos módulos</b>, clique em <span class="ui">Liberar (cortesia)</span> ao lado do módulo.</li>
+  </ol>
+  <p>O acesso aparece como “cortesia” e não entra no faturamento. Se o aluno ainda estiver aguardando, clique também em <span class="ui">Aprovar</span>.</p>
+  </div>
+
+  <div class="task">
+  <h2>3.12 Remover o acesso a um módulo</h2>
+  <p>Na ficha do aluno, no quadro <b>Acesso aos módulos</b>, clique em <span class="ui">Remover</span> ao lado do módulo e confirme. O aluno deixa de ver os vídeos desse módulo imediatamente. A venda continua registrada; exclua-a também se tiver sido um engano (seção 3.13).</p>
+  <figure class="tall"><img src="img/b-ficha-aluno.jpg" /><figcaption>Ficha do aluno: <span class="n">1</span> bloquear, <span class="n">2</span> remover acesso, <span class="n">3</span> liberar cortesia, <span class="n">4</span> registrar venda.</figcaption></figure>
+  </div>
+
+  <div class="task">
+  <h2>3.13 Excluir uma venda registrada</h2>
+  <p>Em <span class="ui">Vendas</span> (ou na ficha do aluno, em <b>Compras</b>), clique em <span class="ui">Excluir</span> na linha da venda e confirme. A venda sai dos relatórios, mas <b>o acesso aos módulos é mantido</b>. Para tirar o acesso, use <span class="ui">Remover</span> (seção 3.12).</p>
+  <div class="box tip"><b>Corrigir valor ou forma de pagamento:</b> exclua a venda e registre-a de novo com os dados corretos.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.14 Bloquear e desbloquear um aluno</h2>
+  <ul>
+    <li><b>Bloquear:</b> na ficha do aluno, clique em <span class="ui">Bloquear</span> e confirme. O aluno é desconectado na hora e não consegue mais assistir a nada. Os acessos e o histórico ficam guardados.</li>
+    <li><b>Desbloquear:</b> em <span class="ui">Alunos</span>, use o filtro <b>Bloqueado</b> e clique em <span class="ui">Aprovar</span>. O aluno volta a assistir aos módulos que já tinha e recebe de novo o e-mail de aprovação.</li>
+  </ul>
+  </div>
+
+  <div class="task">
+  <h2>3.15 Ficha do aluno</h2>
+  <p>A ficha (<span class="ui">Alunos</span> → <span class="ui">Abrir</span>) reúne tudo sobre uma pessoa:</p>
+  <ul>
+    <li>contato, situação, data do cadastro, último acesso e data em que aceitou os termos (LGPD);</li>
+    <li>módulos liberados (via venda ou cortesia), com os botões para liberar e remover;</li>
+    <li>compras, com o total pago;</li>
+    <li>vídeos assistidos: % assistido, tempo, quantas vezes abriu e quando assistiu pela última vez.</li>
+  </ul>
+  </div>
+
+  <div class="task">
+  <h2>3.16 Relatórios</h2>
+  <p>A página <span class="ui">Relatórios</span> é a primeira tela da administração.</p>
+  <figure class="tall"><img src="img/b-relatorios.jpg" /><figcaption>Relatórios com dados de exemplo.</figcaption></figure>
+  <table>
+    <tr><th style="width:28%">Indicador</th><th>Como ler</th></tr>
+    <tr><td><b>Vendas (total / no período)</b></td><td>Soma das vendas registradas. Com filtro de datas, considera apenas o período escolhido.</td></tr>
+    <tr><td><b>Vendas neste mês</b></td><td>Soma das vendas do mês atual (não muda com o filtro).</td></tr>
+    <tr><td><b>Alunos aprovados</b></td><td>Quantos podem assistir; abaixo, quantos aguardam aprovação e o total cadastrado.</td></tr>
+    <tr><td><b>Alunos ativos (30 dias)</b></td><td>Alunos que assistiram a algum vídeo nos últimos 30 dias, e o tempo total assistido na plataforma.</td></tr>
+    <tr><td><b>Vendas por mês</b></td><td>Faturamento e número de vendas dos últimos 12 meses, com barra para comparar os meses.</td></tr>
+    <tr><td><b>Por forma de pagamento</b></td><td>Quanto entrou por Pix, cartão, dinheiro etc.</td></tr>
+    <tr><td><b>Módulos</b></td><td>Vídeos de cada módulo, alunos com acesso e quantos acessos vieram de venda (o restante é cortesia).</td></tr>
+    <tr><td><b>Vídeos mais assistidos</b></td><td><i>Alunos que assistiram / com acesso</i>; <i>visualizações</i> (vezes que o vídeo foi aberto); <i>% médio assistido</i>; <i>concluíram</i> (assistiram 90% ou mais); <i>tempo total</i>.</td></tr>
+    <tr><td><b>Alunos — último acesso</b></td><td>Por aluno: módulos, vídeos iniciados e concluídos, % médio, tempo assistido e a data do último acesso. Ajuda a identificar quem não está assistindo.</td></tr>
+  </table>
+  <h3>Filtrar por período</h3>
+  <ol class="steps">
+    <li>No topo dos Relatórios, preencha <b>Vendas de</b> e <b>até</b> <span class="n">1</span>.</li>
+    <li>Clique em <span class="ui">Filtrar</span> <span class="n">2</span>. Para voltar ao total, clique em <span class="ui">Limpar</span>.</li>
+  </ol>
+  <figure><img src="img/b-relatorios-filtros.jpg" /><figcaption><span class="n">1</span> período, <span class="n">2</span> filtrar, <span class="n">3</span> exportar vendas.</figcaption></figure>
+  </div>
+
+  <div class="task">
+  <h2>3.17 Exportar para Excel (CSV)</h2>
+  <p>Nos Relatórios há três botões <span class="ui">Exportar CSV</span>:</p>
+  <ul>
+    <li><b>Vendas</b>: data, aluno, e-mail, módulos, valor, forma de pagamento e observações. Respeita o filtro de período.</li>
+    <li><b>Vídeos</b>: audiência de cada vídeo.</li>
+    <li><b>Alunos</b>: contato, situação, total pago, engajamento e último acesso.</li>
+  </ul>
+  <p>O arquivo baixado abre direto no Excel, com as colunas já separadas e os acentos corretos. O botão da tela <b>Vendas</b> exporta todas as vendas.</p>
+  <div class="box warn"><b>LGPD:</b> as planilhas têm dados pessoais. Guarde-as em local seguro e não as compartilhe fora da administração.</div>
+  </div>
+
+  <div class="task">
+  <h2>3.18 Rotina a cada mentoria</h2>
+  <p>Lista de conferência para cada encontro (a cada duas semanas):</p>
+  <ul class="check">
+    <li>Enviar a gravação ao YouTube como <b>Não listado</b> e copiar o link (3.6).</li>
+    <li>Em <b>Módulos</b>, abrir o módulo e adicionar o vídeo com “Avisar por e-mail” marcado (3.7).</li>
+    <li>Anexar o PDF de apoio, se houver (3.8).</li>
+    <li>Registrar as vendas presenciais do dia, marcando os módulos de cada aluno (3.10).</li>
+    <li>Conferir em <b>Alunos → Aguardando aprovação</b> se ficou alguém sem aprovar (3.3).</li>
+    <li>Uma vez por mês, consultar os <b>Relatórios</b> e exportar as vendas do mês (3.16 e 3.17).</li>
+  </ul>
+  </div>
+</section>
+
+<!-- ============================== 4. TÉCNICO ============================== -->
+<section class="chapter compact">
+  <div class="chapter-head"><span class="tag">Capítulo 4 · Perfil: Responsável técnico</span><h1>Guia do Responsável técnico</h1><p>Configuração inicial e tarefas raras que não ficam na tela da administração.</p></div>
+
+  <h2>4.1 Colocar o sistema no ar</h2>
+  <p>O passo a passo detalhado está no arquivo <code>mentorias-naap/README.md</code> do repositório. Em resumo:</p>
+  <ol class="steps">
+    <li><b>Supabase</b> (banco de dados, login e arquivos): criar o projeto na região São Paulo e rodar o arquivo <code>supabase/migrations/20261005000000_schema.sql</code> no <b>SQL Editor</b>.</li>
+    <li>No Supabase, em <b>Authentication</b>: desativar “Confirm email”; configurar o <b>SMTP</b> próprio (necessário para o e-mail de “Esqueci minha senha”); definir a Site URL <code>https://mentoriasnaap.com.br</code> e a Redirect URL <code>https://mentoriasnaap.com.br/auth/callback</code>.</li>
+    <li><b>Domínio</b>: registrar <code>mentoriasnaap.com.br</code> no registro.br.</li>
+    <li><b>E-mail</b>: na conta Google que envia os avisos, ativar a verificação em duas etapas e criar uma “senha de app”.</li>
+    <li><b>Vercel</b> (hospedagem): importar o repositório, escolher a pasta <code>mentorias-naap</code>, cadastrar as variáveis de <code>.env.example</code> e publicar. Depois, apontar o domínio.</li>
+  </ol>
+  <table>
+    <tr><th style="width:38%">Variável</th><th>O que é</th></tr>
+    <tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code>, <code>…_ANON_KEY</code></td><td>Endereço e chave pública do Supabase.</td></tr>
+    <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Chave secreta do Supabase. Nunca divulgar.</td></tr>
+    <tr><td><code>NEXT_PUBLIC_SITE_URL</code></td><td>Endereço do site, usado nos links dos e-mails.</td></tr>
+    <tr><td><code>NEXT_PUBLIC_NAAP_NAME / _EMAIL / _PHONE</code></td><td>Textos da marca d'água e do rodapé.</td></tr>
+    <tr><td><code>SMTP_HOST / _PORT / _USER / _PASS</code>, <code>EMAIL_FROM</code></td><td>Envio dos e-mails automáticos (ex.: Gmail, porta 465).</td></tr>
+    <tr><td><code>ADMIN_NOTIFY_EMAIL</code></td><td>Quem recebe o aviso de novo cadastro.</td></tr>
+  </table>
+
+  <div style="break-inside: avoid">
+  <h2>4.2 Criar a conta de administrador</h2>
+  <ol class="steps">
+    <li>Cadastrar-se normalmente no site com o e-mail da administração.</li>
+    <li>No Supabase, abrir o <b>SQL Editor</b> e rodar (trocando o e-mail):</li>
+  </ol>
+  <pre>update public.profiles
+set role = 'admin', status = 'approved', approved_at = now()
+where email = 'coordenacao@naappsicologia.com.br';</pre>
+  <p>Sair e entrar de novo. O mesmo comando serve para criar outro administrador. Para tirar a permissão, rode o comando com <code>role = 'student'</code>.</p>
+  </div>
+
+  <h2>4.3 Tarefas que exigem o painel do Supabase</h2>
+  <table>
+    <tr><th style="width:34%">Tarefa</th><th>Como fazer</th></tr>
+    <tr><td>Trocar o e-mail de um aluno</td><td><b>Authentication → Users</b> → abrir o usuário → alterar o e-mail. Depois, no <b>SQL Editor</b>: <code>update public.profiles set email = 'novo@email' where email = 'antigo@email';</code></td></tr>
+    <tr><td>Excluir definitivamente um aluno (pedido de LGPD)</td><td><b>Authentication → Users</b> → menu do usuário → <b>Delete user</b>. Perfil, acessos, vendas e progresso são apagados junto.</td></tr>
+    <tr><td>Definir uma nova senha para alguém</td><td><b>Authentication → Users</b> → <b>Send password recovery</b>. O aluno também pode usar “Esqueci minha senha”.</td></tr>
+    <tr><td>Reativar o projeto pausado</td><td>No painel do projeto, clicar em <b>Restore</b> (veja 4.4).</td></tr>
+    <tr><td>Cópia de segurança</td><td><b>Database → Backups</b>, ou exportar as planilhas CSV pelos Relatórios.</td></tr>
+  </table>
+
+  <p><b>Mudar cores ou logo:</b> as cores ficam no início do arquivo <code>src/app/globals.css</code>; o logo, em <code>src/components/Logo.tsx</code>. O telefone e o e-mail exibidos vêm das variáveis <code>NEXT_PUBLIC_NAAP_*</code>.</p>
+
+  <h2>4.4 Custos e manutenção</h2>
+  <table>
+    <tr><th>Item</th><th>Serviço</th><th>Custo aproximado</th></tr>
+    <tr><td>Vídeos</td><td>YouTube (não listado)</td><td>grátis</td></tr>
+    <tr><td>Banco, login e PDFs</td><td>Supabase — plano Free</td><td>grátis</td></tr>
+    <tr><td>Hospedagem do site</td><td>Vercel Pro (o plano gratuito não permite uso comercial)</td><td>US$ 20/mês ≈ R$ 110</td></tr>
+    <tr><td>E-mails</td><td>Gmail com senha de app (até cerca de 500 por dia)</td><td>grátis</td></tr>
+    <tr><td>Domínio</td><td>registro.br</td><td>≈ R$ 40/ano</td></tr>
+  </table>
+  <div class="box warn"><b>Atenção:</b> o plano gratuito do Supabase <b>pausa o projeto após 7 dias sem nenhum acesso</b>. Se o site parar de funcionar depois de um período parado, entre no painel do Supabase e clique em <b>Restore</b>. Para evitar isso, há o plano Pro (US$ 25/mês).</div>
+</section>
+
+<!-- ============================== 5. FAQ ============================== -->
+<section class="chapter">
+  <div class="chapter-head"><span class="tag">Capítulo 5</span><h1>Perguntas frequentes e solução de problemas</h1><p>O que fazer quando algo não sai como esperado.</p></div>
+
+  <table>
+    <tr><th style="width:36%">Situação</th><th>O que verificar / fazer</th></tr>
+    <tr><td><b>O aluno diz que não vê um vídeo</b></td><td>1) Ele está <b>Aprovado</b>? 2) Na ficha dele, o módulo aparece como liberado? 3) O <b>módulo</b> está publicado? 4) O <b>vídeo</b> está publicado? Os quatro precisam estar certos.</td></tr>
+    <tr><td><b>O vídeo abre, mas não toca</b></td><td>No YouTube Studio, confira se o vídeo está <b>Não listado</b> (e não Privado), se terminou de processar e se “Permitir incorporação” está ativo. Confira também se o link cadastrado é o desse vídeo.</td></tr>
+    <tr><td><b>O aluno é desconectado sozinho</b></td><td>A conta foi aberta em outro aparelho ou navegador (regra de um aparelho por vez). Se acontecer sem motivo, oriente-o a usar só um navegador. Se houver suspeita de compartilhamento, considere bloquear (3.14).</td></tr>
+    <tr><td><b>O aluno não recebeu o e-mail de aprovação ou de vídeo novo</b></td><td>Peça para olhar o spam. O acesso não depende do e-mail: basta entrar no site. Se nenhum e-mail estiver saindo, o responsável técnico deve conferir as variáveis <code>SMTP_*</code>.</td></tr>
+    <tr><td><b>“Esqueci minha senha” não chega</b></td><td>Exige o SMTP configurado no Supabase (4.1, passo 2). Como alternativa, o responsável técnico pode enviar a recuperação pelo painel (4.3).</td></tr>
+    <tr><td><b>Não acho o aluno no formulário de venda</b></td><td>Ele ainda não se cadastrou (ou foi recusado). Peça o cadastro ou faça-o pela janela anônima (3.2). Alunos recusados não aparecem: aprove-o antes.</td></tr>
+    <tr><td><b>Registrei a venda no aluno errado</b></td><td>Na ficha desse aluno: <span class="ui">Remover</span> o módulo e <span class="ui">Excluir</span> a venda. Depois registre no aluno certo.</td></tr>
+    <tr><td><b>Publiquei um vídeo e o aviso não foi enviado</b></td><td>O aviso só sai com o módulo publicado e para alunos aprovados com acesso. O aviso de cada vídeo sai uma única vez.</td></tr>
+    <tr><td><b>Esqueci a senha da administração</b></td><td>Use “Esqueci minha senha” na tela de entrada, como qualquer usuário.</td></tr>
+    <tr><td><b>O site inteiro está fora do ar</b></td><td>Provavelmente o Supabase foi pausado por inatividade: o responsável técnico clica em <b>Restore</b> no painel (4.4).</td></tr>
+    <tr><td><b>Um aluno pediu para apagar seus dados (LGPD)</b></td><td>O responsável técnico exclui o usuário no Supabase (4.3). Antes, se quiser, exporte as vendas para manter o registro fiscal.</td></tr>
+    <tr><td><b>O PDF não é aceito</b></td><td>O arquivo precisa ser PDF e ter no máximo 50 MB. Comprima o arquivo ou divida-o em partes.</td></tr>
+  </table>
+</section>
+
+<!-- ============================== 6. REFERÊNCIA RÁPIDA ============================== -->
+<section class="chapter">
+  <div class="chapter-head"><span class="tag">Capítulo 6</span><h1>Referência rápida</h1><p>“Quero… → Onde faço”. Contato NAAP: contato@naappsicologia.com.br · (85) 99840-2825</p></div>
+  <table>
+    <tr><th style="width:40%">Quero…</th><th style="width:16%">Quem</th><th>Onde faço</th></tr>
+    <tr><td>Criar minha conta</td><td>Aluno</td><td>Site → <b>Cadastre-se</b> (2.1)</td></tr>
+    <tr><td>Assistir a uma mentoria</td><td>Aluno</td><td><b>Minhas mentorias</b> → módulo → vídeo (2.5, 2.6)</td></tr>
+    <tr><td>Baixar o material</td><td>Aluno</td><td>Página do vídeo → botão 📎 (2.7)</td></tr>
+    <tr><td>Trocar minha senha ou telefone</td><td>Aluno</td><td><b>Minha conta</b> (2.10)</td></tr>
+    <tr><td>Recuperar a senha</td><td>Todos</td><td><b>Entrar</b> → Esqueci minha senha (2.4)</td></tr>
+    <tr><td>Criar um usuário</td><td>Administração</td><td>Link de cadastro ao aluno, ou cadastro em janela anônima (3.2)</td></tr>
+    <tr><td>Aprovar um cadastro</td><td>Administração</td><td><b>Alunos</b> → Aguardando aprovação → Aprovar (3.3)</td></tr>
+    <tr><td>Criar um tópico de mentoria (módulo)</td><td>Administração</td><td><b>Módulos</b> → Novo módulo (3.4)</td></tr>
+    <tr><td>Esconder um módulo</td><td>Administração</td><td><b>Módulos</b> → módulo → desmarcar Publicado (3.5)</td></tr>
+    <tr><td>Subir um vídeo novo</td><td>Administração</td><td>YouTube não listado (3.6) → <b>Módulos</b> → módulo → Adicionar vídeo (3.7)</td></tr>
+    <tr><td>Anexar PDF</td><td>Administração</td><td><b>Módulos</b> → módulo → Editar / PDF (3.8)</td></tr>
+    <tr><td>Desbloquear um módulo para um aluno</td><td>Administração</td><td><b>Vendas</b> → Registrar nova venda (3.10) ou ficha → Liberar (cortesia) (3.11)</td></tr>
+    <tr><td>Tirar um módulo de um aluno</td><td>Administração</td><td><b>Alunos</b> → Abrir → Remover (3.12)</td></tr>
+    <tr><td>Bloquear / desbloquear um aluno</td><td>Administração</td><td>Ficha → Bloquear; <b>Alunos</b> → Bloqueado → Aprovar (3.14)</td></tr>
+    <tr><td>Ver quanto vendi no mês</td><td>Administração</td><td><b>Relatórios</b> (3.16)</td></tr>
+    <tr><td>Ver quem assistiu a um vídeo</td><td>Administração</td><td><b>Relatórios</b> → Vídeos; ficha do aluno (3.15, 3.16)</td></tr>
+    <tr><td>Planilha para o Excel</td><td>Administração</td><td><b>Relatórios</b> → Exportar CSV (3.17)</td></tr>
+    <tr><td>Criar outro administrador</td><td>Técnico</td><td>Supabase → SQL Editor (4.2)</td></tr>
+    <tr><td>Trocar e-mail ou excluir aluno</td><td>Técnico</td><td>Supabase → Authentication → Users (4.3)</td></tr>
+  </table>
+</section>
+
+</body>
+</html>

@@ -1,20 +1,21 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { saveVideo } from "./actions";
+import { useActionForm } from "@/lib/use-action-form";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FormMessage } from "@/components/FormMessage";
 import type { Video } from "@/lib/types";
 
 export function VideoForm({ moduleId, video }: { moduleId: string; video?: Video }) {
-  const [state, action] = useActionState(saveVideo, undefined);
+  const { state, onSubmit, pending } = useActionForm(saveVideo);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (state?.success && !video) formRef.current?.reset();
   }, [state, video]);
 
   return (
-    <form ref={formRef} action={action} className="space-y-4">
+    <form ref={formRef} onSubmit={onSubmit} className="space-y-4">
       <input type="hidden" name="module_id" value={moduleId} />
       {video && <input type="hidden" name="id" value={video.id} />}
       <div>
@@ -22,15 +23,18 @@ export function VideoForm({ moduleId, video }: { moduleId: string; video?: Video
         <input className="input" id="title" name="title" defaultValue={video?.title} placeholder="Ex.: Mentoria 05/10 — Estudo de caso" required />
       </div>
       <div>
-        <label className="label" htmlFor="youtube">Link do YouTube (não listado)</label>
+        <label className="label" htmlFor="video_url">Link de incorporação do Panda Video</label>
         <input
           className="input"
-          id="youtube"
-          name="youtube"
-          defaultValue={video ? `https://youtu.be/${video.youtube_id}` : ""}
-          placeholder="https://youtu.be/..."
+          id="video_url"
+          name="video_url"
+          defaultValue={video?.video_url ?? ""}
+          placeholder="https://player-vz-….tv.pandavideo.com.br/embed/?v=…"
           required
         />
+        <p className="mt-1 text-xs text-muted">
+          No Panda: abra o vídeo → Incorporar (embed) → copie o link ou o código &lt;iframe&gt; inteiro e cole aqui.
+        </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
@@ -39,7 +43,7 @@ export function VideoForm({ moduleId, video }: { moduleId: string; video?: Video
         </div>
         <div>
           <label className="label" htmlFor="duration_minutes">Duração (min)</label>
-          <input className="input" id="duration_minutes" name="duration_minutes" type="number" min="0" defaultValue={video?.duration_minutes ?? ""} />
+          <input className="input" id="duration_minutes" name="duration_minutes" type="number" min="1" defaultValue={video?.duration_minutes ?? ""} required />
         </div>
         <div>
           <label className="label" htmlFor="position">Ordem</label>
@@ -59,7 +63,7 @@ export function VideoForm({ moduleId, video }: { moduleId: string; video?: Video
         </label>
       )}
       <FormMessage state={state} />
-      <SubmitButton pendingText="Salvando...">{video ? "Salvar vídeo" : "Adicionar vídeo"}</SubmitButton>
+      <SubmitButton pending={pending} pendingText="Salvando...">{video ? "Salvar vídeo" : "Adicionar vídeo"}</SubmitButton>
     </form>
   );
 }

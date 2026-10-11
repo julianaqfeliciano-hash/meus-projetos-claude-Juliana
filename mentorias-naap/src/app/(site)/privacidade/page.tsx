@@ -28,7 +28,7 @@ export default function PrivacyPage() {
       <p>
         Não vendemos seus dados. Eles são armazenados em provedores que prestam serviço à plataforma:
         Supabase (banco de dados e autenticação), provedor de hospedagem do site, provedor de e-mail e
-        YouTube (exibição dos vídeos, sujeito à política do Google).
+        Panda Video (hospedagem e exibição dos vídeos).
       </p>
       <h2>4. Por quanto tempo</h2>
       <p>

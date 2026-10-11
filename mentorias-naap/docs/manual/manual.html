@@ -110,7 +110,7 @@
   <h1>Manual de uso<br />Mentorias NAAP</h1>
   <p class="sub">Como alunos, administração e responsável técnico usam a plataforma de mentorias gravadas: do cadastro ao relatório.</p>
   <div class="personas"><span>Aluno(a)</span><span>Administração</span><span>Responsável técnico</span></div>
-  <p class="meta">Versão 1.0 · outubro de 2026 · mentoriasnaap.com.br</p>
+  <p class="meta">Versão 1.1 · outubro de 2026 · mentoriasnaap.com.br</p>
 </section>
 
 <!-- ============================== SUMÁRIO ============================== -->
@@ -124,7 +124,7 @@
       <ol><li>2.1 Criar a conta</li><li>2.2 Aguardar a aprovação</li><li>2.3 Entrar na plataforma</li><li>2.4 Esqueci minha senha</li><li>2.5 Ver minhas mentorias</li><li>2.6 Assistir a um vídeo</li><li>2.7 Baixar o material em PDF</li><li>2.8 Assistir pelo celular</li><li>2.9 Um aparelho por vez</li><li>2.10 Minha conta: dados e senha</li><li>2.11 Sair</li></ol>
     </li>
     <li>3. Guia da Administração
-      <ol><li>3.1 Entrar e conhecer o menu</li><li>3.2 Criar um usuário (aluno)</li><li>3.3 Aprovar ou recusar cadastros</li><li>3.4 Criar um módulo (tópico de mentoria)</li><li>3.5 Editar, ordenar, publicar ou excluir um módulo</li><li>3.6 Enviar a gravação ao YouTube</li><li>3.7 Adicionar um vídeo novo</li><li>3.8 Anexar, trocar ou remover o PDF</li><li>3.9 Editar, ocultar ou excluir um vídeo</li><li>3.10 Registrar uma venda e desbloquear módulos</li><li>3.11 Liberar um módulo sem venda (cortesia)</li><li>3.12 Remover o acesso a um módulo</li><li>3.13 Excluir uma venda registrada</li><li>3.14 Bloquear e desbloquear um aluno</li><li>3.15 Ficha do aluno</li><li>3.16 Relatórios</li><li>3.17 Exportar para Excel (CSV)</li><li>3.18 Rotina a cada mentoria</li></ol>
+      <ol><li>3.1 Entrar e conhecer o menu</li><li>3.2 Criar um usuário (aluno)</li><li>3.3 Aprovar ou recusar cadastros</li><li>3.4 Criar um módulo (tópico de mentoria)</li><li>3.5 Editar, ordenar, publicar ou excluir um módulo</li><li>3.6 Enviar a gravação ao Panda Video</li><li>3.7 Adicionar um vídeo novo</li><li>3.8 Anexar, trocar ou remover o PDF</li><li>3.9 Editar, ocultar ou excluir um vídeo</li><li>3.10 Registrar uma venda e desbloquear módulos</li><li>3.11 Liberar um módulo sem venda (cortesia)</li><li>3.12 Remover o acesso a um módulo</li><li>3.13 Excluir uma venda registrada</li><li>3.14 Bloquear e desbloquear um aluno</li><li>3.15 Ficha do aluno</li><li>3.16 Relatórios</li><li>3.17 Exportar para Excel (CSV)</li><li>3.18 Rotina a cada mentoria</li></ol>
     </li>
     <li>4. Guia do Responsável técnico
       <ol><li>4.1 Colocar o sistema no ar</li><li>4.2 Criar a conta de administrador</li><li>4.3 Tarefas que exigem o painel do Supabase</li><li>4.4 Custos e manutenção</li></ol>
@@ -141,7 +141,7 @@
   <h2>1.1 Para que serve</h2>
   <p>A plataforma <b>Mentorias NAAP</b> guarda as gravações das mentorias de psicologia realizadas pelo NAAP e as disponibiliza apenas para quem comprou o acesso. A compra é feita <b>presencialmente</b>; o sistema não tem carrinho nem pagamento on-line. A administração registra a venda e o sistema libera os vídeos na hora.</p>
   <ul>
-    <li>Os vídeos ficam no YouTube como <b>não listados</b> e são exibidos dentro do site, com marca d'água do NAAP.</li>
+    <li>Os vídeos ficam hospedados no <b>Panda Video</b> e são exibidos dentro do site, com marca d'água do NAAP.</li>
     <li>As gravações são organizadas em <b>módulos</b>. O aluno pode comprar um ou vários módulos.</li>
     <li>O acesso <b>não expira</b>.</li>
     <li>Cada conta pode ficar conectada em <b>apenas um aparelho por vez</b>.</li>
@@ -151,7 +151,7 @@
   <div class="personas-grid">
     <div><h3>Aluno(a)</h3>Cria a conta, espera a aprovação e assiste às mentorias dos módulos comprados. Baixa os PDFs de apoio. <br /><i>Capítulo 2.</i></div>
     <div><h3>Administração</h3>Uma pessoa do NAAP que aprova cadastros, cria módulos, publica vídeos, registra vendas e acompanha os relatórios. <br /><i>Capítulo 3.</i></div>
-    <div><h3>Responsável técnico</h3>Quem coloca o sistema no ar e cuida das contas de hospedagem (Supabase, Vercel, domínio e e-mail). Atua só de vez em quando. <br /><i>Capítulo 4.</i></div>
+    <div><h3>Responsável técnico</h3>Quem coloca o sistema no ar e cuida das contas de hospedagem (Supabase, Cloudflare, Panda Video, domínio e e-mail). Atua só de vez em quando. <br /><i>Capítulo 4.</i></div>
   </div>
 
   <h2>1.3 Como tudo se conecta</h2>
@@ -168,7 +168,7 @@
   <table>
     <tr><th style="width:28%">Termo</th><th>O que significa</th></tr>
     <tr><td><b>Módulo</b></td><td>Um tópico de mentoria (por exemplo, “Avaliação Psicológica”) que agrupa vários vídeos. É a unidade de venda: o aluno compra módulos.</td></tr>
-    <tr><td><b>Vídeo</b></td><td>A gravação de uma mentoria, ligada a um módulo. Aponta para um vídeo não listado do YouTube e pode ter um PDF anexo.</td></tr>
+    <tr><td><b>Vídeo</b></td><td>A gravação de uma mentoria, ligada a um módulo. Aponta para um vídeo hospedado no Panda Video e pode ter um PDF anexo.</td></tr>
     <tr><td><b>Publicado / Rascunho</b></td><td>Módulos e vídeos em <i>rascunho</i> ficam invisíveis para os alunos. Só o que está <i>publicado</i> aparece.</td></tr>
     <tr><td><b>Venda presencial</b></td><td>Registro feito pela administração com aluno, módulos, valor, forma de pagamento e data. Ao ser registrada, libera os módulos.</td></tr>
     <tr><td><b>Acesso</b></td><td>A permissão de um aluno para assistir a um módulo. Nasce de uma venda ou de uma liberação de cortesia.</td></tr>
@@ -237,12 +237,12 @@
   <h2>2.6 Assistir a um vídeo</h2>
   <ol class="steps">
     <li>Clique no vídeo desejado. O player abre com a marca d'água do NAAP.</li>
-    <li>Use os controles do próprio player para dar play, pausar, ajustar o volume e a velocidade.</li>
+    <li>Use os controles do próprio player para dar play, pausar, avançar, ajustar o volume e a velocidade.</li>
     <li>Para ampliar, use o botão <span class="ui">⛶ Tela cheia</span> <span class="n">1</span> no canto superior direito. Para voltar, clique em <span class="ui">Sair da tela cheia</span> ou aperte <code>Esc</code>.</li>
     <li>Ao terminar, clique em <span class="ui">Próximo vídeo →</span> (aparece quando há um próximo vídeo no módulo).</li>
   </ol>
   <figure><img src="img/a-assistir.jpg" /><figcaption>Página do vídeo: <span class="n">1</span> tela cheia, <span class="n">2</span> material em PDF.</figcaption></figure>
-  <div class="box tip"><b>Continuar de onde parou:</b> o sistema lembra até onde você assistiu. Ao voltar ao vídeo, ele começa desse ponto, e aparece “Continuando de onde você parou”.</div>
+  <div class="box tip"><b>Continuar de onde parou:</b> o sistema lembra até onde você assistiu. Ao voltar ao vídeo, aparece abaixo do título “Você parou em 32:10”, por exemplo. Arraste a barra do player até esse ponto para continuar.</div>
   </div>
 
   <div class="task">
@@ -352,19 +352,18 @@
     <li>No quadro <b>Dados do módulo</b> (à direita), altere o título, a descrição, a ordem ou a opção <b>Publicado</b> e clique em <span class="ui">Salvar módulo</span>.</li>
     <li>Para apagar o módulo, clique em <span class="ui">Excluir módulo</span> e confirme.</li>
   </ol>
-  <div class="box warn"><b>Atenção:</b> excluir um módulo apaga também todos os seus vídeos, os PDFs e os acessos dos alunos a ele, e não pode ser desfeito. Os vídeos continuam no YouTube. Se quiser apenas esconder o módulo, desmarque <b>Publicado</b>.</div>
+  <div class="box warn"><b>Atenção:</b> excluir um módulo apaga também todos os seus vídeos, os PDFs e os acessos dos alunos a ele, e não pode ser desfeito. Os vídeos continuam no Panda Video. Se quiser apenas esconder o módulo, desmarque <b>Publicado</b>.</div>
   </div>
 
   <div class="task">
-  <h2>3.6 Enviar a gravação ao YouTube (não listado)</h2>
+  <h2>3.6 Enviar a gravação ao Panda Video</h2>
   <ol class="steps">
-    <li>Acesse <b>studio.youtube.com</b> com a conta do NAAP e clique em <span class="ui">Criar</span> → <span class="ui">Enviar vídeos</span>.</li>
-    <li>Selecione o arquivo da gravação e preencha o título.</li>
-    <li>Na etapa <b>Visibilidade</b>, escolha <b>Não listado</b>. Não escolha “Privado”, porque o vídeo privado não toca dentro do site.</li>
-    <li>Confira se a opção <b>Permitir incorporação</b> está ativa (em “Mais opções”; ela vem ativada por padrão).</li>
-    <li>Conclua e copie o <b>link do vídeo</b> (botão de copiar ao lado do link, algo como <code>https://youtu.be/AbCdEfGhIjK</code>).</li>
+    <li>Entre em <b>pandavideo.com.br</b> com a conta do NAAP e clique em <span class="ui">Upload</span> (ou arraste o arquivo da gravação para o painel).</li>
+    <li>Aguarde o envio e o processamento. Vídeos de cerca de 2 horas podem levar alguns minutos.</li>
+    <li>Abra o vídeo e vá até a opção de <b>incorporar (embed)</b>.</li>
+    <li>Copie o <b>link de incorporação</b> (algo como <code>https://player-vz-….tv.pandavideo.com.br/embed/?v=…</code>) ou o código <code>&lt;iframe&gt;</code> inteiro. O site aceita os dois.</li>
   </ol>
-  <div class="box tip"><b>Dica:</b> um vídeo de cerca de 2 horas pode levar um tempo para processar no YouTube. Você pode cadastrá-lo no site logo após copiar o link.</div>
+  <div class="box tip"><b>Segurança:</b> nas configurações do Panda Video, cadastre o domínio do site (<code>mentoriasnaap.com.br</code>) como <b>domínio permitido</b>. Assim, o vídeo só toca dentro da plataforma, mesmo que alguém copie o link.</div>
   </div>
 
   <div class="task">
@@ -372,8 +371,8 @@
   <ol class="steps">
     <li>Clique em <span class="ui">Módulos</span> e abra o módulo desejado.</li>
     <li>No quadro <b>Adicionar vídeo</b>, preencha o <b>título</b> <span class="n">1</span>, por exemplo “Mentoria 18/10 — Devolutiva ao paciente”.</li>
-    <li>Cole o <b>link do YouTube</b> <span class="n">2</span>. Funciona com qualquer formato de link do YouTube.</li>
-    <li>Informe a <b>data da mentoria</b> <span class="n">3</span> e, se quiser, a duração em minutos, a ordem e uma descrição.</li>
+    <li>Cole o <b>link de incorporação do Panda Video</b> <span class="n">2</span>. Pode colar só o link ou o código <code>&lt;iframe&gt;</code> inteiro copiado do Panda (veja 3.6).</li>
+    <li>Informe a <b>data da mentoria</b> <span class="n">3</span> e a <b>duração em minutos</b> (obrigatória, usada para calcular o % assistido nos relatórios). Se quiser, ajuste a ordem e escreva uma descrição.</li>
     <li>Mantenha <b>Publicado</b> marcado e deixe <b>Avisar por e-mail os alunos deste módulo</b> <span class="n">4</span> marcado para avisar quem comprou.</li>
     <li>Clique em <span class="ui">Adicionar vídeo</span> <span class="n">5</span>. Aparece a confirmação “Vídeo salvo. Aviso enviado por e-mail para N aluno(s)”.</li>
   </ol>
@@ -399,8 +398,8 @@
   <ul>
     <li><b>Editar</b> (título, link, data, descrição, ordem): <span class="ui">Editar / PDF</span> → altere → <span class="ui">Salvar vídeo</span>.</li>
     <li><b>Ocultar</b> sem apagar: desmarque <b>Publicado</b> <span class="n">3</span> e salve. O vídeo some para os alunos, mas o histórico de quem assistiu fica guardado.</li>
-    <li><b>Excluir</b>: clique em <span class="ui">Excluir vídeo</span> <span class="n">4</span> e confirme. O progresso dos alunos nesse vídeo também é apagado. O vídeo continua no YouTube.</li>
-    <li><b>Trocar a gravação</b>: envie a nova versão ao YouTube e cole o novo link no campo do YouTube.</li>
+    <li><b>Excluir</b>: clique em <span class="ui">Excluir vídeo</span> <span class="n">4</span> e confirme. O progresso dos alunos nesse vídeo também é apagado. O vídeo continua no Panda Video.</li>
+    <li><b>Trocar a gravação</b>: envie a nova versão ao Panda Video e cole o novo link de incorporação no campo do vídeo.</li>
   </ul>
   </div>
 
@@ -499,7 +498,7 @@
   <h2>3.18 Rotina a cada mentoria</h2>
   <p>Lista de conferência para cada encontro (a cada duas semanas):</p>
   <ul class="check">
-    <li>Enviar a gravação ao YouTube como <b>Não listado</b> e copiar o link (3.6).</li>
+    <li>Enviar a gravação ao Panda Video e copiar o link de incorporação (3.6).</li>
     <li>Em <b>Módulos</b>, abrir o módulo e adicionar o vídeo com “Avisar por e-mail” marcado (3.7).</li>
     <li>Anexar o PDF de apoio, se houver (3.8).</li>
     <li>Registrar as vendas presenciais do dia, marcando os módulos de cada aluno (3.10).</li>
@@ -514,13 +513,13 @@
   <div class="chapter-head"><span class="tag">Capítulo 4 · Perfil: Responsável técnico</span><h1>Guia do Responsável técnico</h1><p>Configuração inicial e tarefas raras que não ficam na tela da administração.</p></div>
 
   <h2>4.1 Colocar o sistema no ar</h2>
-  <p>O passo a passo detalhado está no arquivo <code>mentorias-naap/README.md</code> do repositório. Em resumo:</p>
+  <p>O passo a passo detalhado está no arquivo <code>mentorias-naap/README.md</code>, seção “Colocar no ar (Cloudflare)”. Em resumo:</p>
   <ol class="steps">
-    <li><b>Supabase</b> (banco de dados, login e arquivos): criar o projeto na região São Paulo e rodar o arquivo <code>supabase/migrations/20261005000000_schema.sql</code> no <b>SQL Editor</b>.</li>
-    <li>No Supabase, em <b>Authentication</b>: desativar “Confirm email”; configurar o <b>SMTP</b> próprio (necessário para o e-mail de “Esqueci minha senha”); definir a Site URL <code>https://mentoriasnaap.com.br</code> e a Redirect URL <code>https://mentoriasnaap.com.br/auth/callback</code>.</li>
-    <li><b>Domínio</b>: registrar <code>mentoriasnaap.com.br</code> no registro.br.</li>
-    <li><b>E-mail</b>: na conta Google que envia os avisos, ativar a verificação em duas etapas e criar uma “senha de app”.</li>
-    <li><b>Vercel</b> (hospedagem): importar o repositório, escolher a pasta <code>mentorias-naap</code>, cadastrar as variáveis de <code>.env.example</code> e publicar. Depois, apontar o domínio.</li>
+    <li><b>Supabase</b> (banco de dados, login e arquivos): criar o projeto na região São Paulo e rodar, em ordem, os arquivos de <code>supabase/migrations/</code> no <b>SQL Editor</b>.</li>
+    <li><b>Brevo</b> (e-mails): criar a conta grátis, verificar o remetente (<b>Senders</b>) e gerar uma chave de API. No Supabase, em <b>Authentication</b>: desativar “Confirm email”, ativar o <b>SMTP</b> próprio com os dados de SMTP do Brevo (necessário para “Esqueci minha senha”) e definir a Site URL e a Redirect URL <code>…/auth/callback</code>.</li>
+    <li><b>Panda Video</b>: assinar um plano e cadastrar o domínio do site como domínio permitido.</li>
+    <li><b>Cloudflare</b> (hospedagem grátis): criar a conta, preencher o arquivo <code>.env.production.local</code> com as variáveis abaixo e rodar <code>npm run cf:deploy</code>. O site fica em <code>mentorias-naap.&lt;conta&gt;.workers.dev</code>.</li>
+    <li><b>Domínio</b>: registrar <code>mentoriasnaap.com.br</code> no registro.br e ligá-lo ao site em <b>Workers → mentorias-naap → Settings → Domains &amp; Routes</b>.</li>
   </ol>
   <table>
     <tr><th style="width:38%">Variável</th><th>O que é</th></tr>
@@ -528,7 +527,7 @@
     <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Chave secreta do Supabase. Nunca divulgar.</td></tr>
     <tr><td><code>NEXT_PUBLIC_SITE_URL</code></td><td>Endereço do site, usado nos links dos e-mails.</td></tr>
     <tr><td><code>NEXT_PUBLIC_NAAP_NAME / _EMAIL / _PHONE</code></td><td>Textos da marca d'água e do rodapé.</td></tr>
-    <tr><td><code>SMTP_HOST / _PORT / _USER / _PASS</code>, <code>EMAIL_FROM</code></td><td>Envio dos e-mails automáticos (ex.: Gmail, porta 465).</td></tr>
+    <tr><td><code>BREVO_API_KEY</code>, <code>EMAIL_FROM_NAME</code>, <code>EMAIL_FROM_ADDRESS</code></td><td>Envio dos e-mails automáticos pelo Brevo (o remetente precisa estar verificado no Brevo).</td></tr>
     <tr><td><code>ADMIN_NOTIFY_EMAIL</code></td><td>Quem recebe o aviso de novo cadastro.</td></tr>
   </table>
 
@@ -559,31 +558,31 @@ where email = 'coordenacao@naappsicologia.com.br';</pre>
   <h2>4.4 Custos e manutenção</h2>
   <table>
     <tr><th>Item</th><th>Serviço</th><th>Custo aproximado</th></tr>
-    <tr><td>Vídeos</td><td>YouTube (não listado)</td><td>grátis</td></tr>
+    <tr><td>Hospedagem do site</td><td>Cloudflare Workers — plano Free</td><td>grátis</td></tr>
     <tr><td>Banco, login e PDFs</td><td>Supabase — plano Free</td><td>grátis</td></tr>
-    <tr><td>Hospedagem do site</td><td>Vercel Pro (o plano gratuito não permite uso comercial)</td><td>US$ 20/mês ≈ R$ 110</td></tr>
-    <tr><td>E-mails</td><td>Gmail com senha de app (até cerca de 500 por dia)</td><td>grátis</td></tr>
+    <tr><td>E-mails</td><td>Brevo — plano Free (300 e-mails por dia)</td><td>grátis</td></tr>
+    <tr><td>Vídeos</td><td>Panda Video — plano Bronze (200 GB de armazenamento e 500 GB de tráfego por mês)</td><td>≈ US$ 17,90/mês (confira o valor atual em reais)</td></tr>
     <tr><td>Domínio</td><td>registro.br</td><td>≈ R$ 40/ano</td></tr>
   </table>
-  <div class="box warn"><b>Atenção:</b> o plano gratuito do Supabase <b>pausa o projeto após 7 dias sem nenhum acesso</b>. Se o site parar de funcionar depois de um período parado, entre no painel do Supabase e clique em <b>Restore</b>. Para evitar isso, há o plano Pro (US$ 25/mês).</div>
+  <div class="box warn"><b>Atenção a dois limites gratuitos:</b> (1) o <b>Supabase</b> pausa o projeto após 7 dias sem nenhum acesso; se o site parar depois de um período parado, clique em <b>Restore</b> no painel do Supabase (o plano Pro custa US$ 25/mês). (2) O plano grátis da <b>Cloudflare</b> limita o tempo de processamento de cada acesso; se aparecerem erros 1102 (“Worker exceeded resource limits”), ative o plano <b>Workers Paid</b> (US$ 5/mês).</div>
 </section>
 
 <!-- ============================== 5. FAQ ============================== -->
-<section class="chapter">
+<section class="chapter compact">
   <div class="chapter-head"><span class="tag">Capítulo 5</span><h1>Perguntas frequentes e solução de problemas</h1><p>O que fazer quando algo não sai como esperado.</p></div>
 
   <table>
     <tr><th style="width:36%">Situação</th><th>O que verificar / fazer</th></tr>
     <tr><td><b>O aluno diz que não vê um vídeo</b></td><td>1) Ele está <b>Aprovado</b>? 2) Na ficha dele, o módulo aparece como liberado? 3) O <b>módulo</b> está publicado? 4) O <b>vídeo</b> está publicado? Os quatro precisam estar certos.</td></tr>
-    <tr><td><b>O vídeo abre, mas não toca</b></td><td>No YouTube Studio, confira se o vídeo está <b>Não listado</b> (e não Privado), se terminou de processar e se “Permitir incorporação” está ativo. Confira também se o link cadastrado é o desse vídeo.</td></tr>
+    <tr><td><b>O vídeo abre, mas não toca</b></td><td>No painel do Panda Video, confira se o vídeo terminou de processar e se o domínio do site está na lista de <b>domínios permitidos</b>. Confira também se o link cadastrado é o desse vídeo.</td></tr>
     <tr><td><b>O aluno é desconectado sozinho</b></td><td>A conta foi aberta em outro aparelho ou navegador (regra de um aparelho por vez). Se acontecer sem motivo, oriente-o a usar só um navegador. Se houver suspeita de compartilhamento, considere bloquear (3.14).</td></tr>
     <tr><td><b>O aluno não recebeu o e-mail de aprovação ou de vídeo novo</b></td><td>Peça para olhar o spam. O acesso não depende do e-mail: basta entrar no site. Se nenhum e-mail estiver saindo, o responsável técnico deve conferir as variáveis <code>SMTP_*</code>.</td></tr>
-    <tr><td><b>“Esqueci minha senha” não chega</b></td><td>Exige o SMTP configurado no Supabase (4.1, passo 2). Como alternativa, o responsável técnico pode enviar a recuperação pelo painel (4.3).</td></tr>
+    <tr><td><b>“Esqueci minha senha” não chega</b></td><td>Exige o SMTP do Brevo configurado no Supabase (4.1, passo 2). Como alternativa, o responsável técnico pode enviar a recuperação pelo painel (4.3).</td></tr>
     <tr><td><b>Não acho o aluno no formulário de venda</b></td><td>Ele ainda não se cadastrou (ou foi recusado). Peça o cadastro ou faça-o pela janela anônima (3.2). Alunos recusados não aparecem: aprove-o antes.</td></tr>
     <tr><td><b>Registrei a venda no aluno errado</b></td><td>Na ficha desse aluno: <span class="ui">Remover</span> o módulo e <span class="ui">Excluir</span> a venda. Depois registre no aluno certo.</td></tr>
     <tr><td><b>Publiquei um vídeo e o aviso não foi enviado</b></td><td>O aviso só sai com o módulo publicado e para alunos aprovados com acesso. O aviso de cada vídeo sai uma única vez.</td></tr>
     <tr><td><b>Esqueci a senha da administração</b></td><td>Use “Esqueci minha senha” na tela de entrada, como qualquer usuário.</td></tr>
-    <tr><td><b>O site inteiro está fora do ar</b></td><td>Provavelmente o Supabase foi pausado por inatividade: o responsável técnico clica em <b>Restore</b> no painel (4.4).</td></tr>
+    <tr><td><b>O site inteiro está fora do ar</b></td><td>Provavelmente o Supabase foi pausado por inatividade: o responsável técnico clica em <b>Restore</b> no painel (4.4). Se a página mostrar “Error 1102”, é o limite do plano grátis da Cloudflare (4.4).</td></tr>
     <tr><td><b>Um aluno pediu para apagar seus dados (LGPD)</b></td><td>O responsável técnico exclui o usuário no Supabase (4.3). Antes, se quiser, exporte as vendas para manter o registro fiscal.</td></tr>
     <tr><td><b>O PDF não é aceito</b></td><td>O arquivo precisa ser PDF e ter no máximo 50 MB. Comprima o arquivo ou divida-o em partes.</td></tr>
   </table>
@@ -603,7 +602,7 @@ where email = 'coordenacao@naappsicologia.com.br';</pre>
     <tr><td>Aprovar um cadastro</td><td>Administração</td><td><b>Alunos</b> → Aguardando aprovação → Aprovar (3.3)</td></tr>
     <tr><td>Criar um tópico de mentoria (módulo)</td><td>Administração</td><td><b>Módulos</b> → Novo módulo (3.4)</td></tr>
     <tr><td>Esconder um módulo</td><td>Administração</td><td><b>Módulos</b> → módulo → desmarcar Publicado (3.5)</td></tr>
-    <tr><td>Subir um vídeo novo</td><td>Administração</td><td>YouTube não listado (3.6) → <b>Módulos</b> → módulo → Adicionar vídeo (3.7)</td></tr>
+    <tr><td>Subir um vídeo novo</td><td>Administração</td><td>Panda Video (3.6) → <b>Módulos</b> → módulo → Adicionar vídeo (3.7)</td></tr>
     <tr><td>Anexar PDF</td><td>Administração</td><td><b>Módulos</b> → módulo → Editar / PDF (3.8)</td></tr>
     <tr><td>Desbloquear um módulo para um aluno</td><td>Administração</td><td><b>Vendas</b> → Registrar nova venda (3.10) ou ficha → Liberar (cortesia) (3.11)</td></tr>
     <tr><td>Tirar um módulo de um aluno</td><td>Administração</td><td><b>Alunos</b> → Abrir → Remover (3.12)</td></tr>

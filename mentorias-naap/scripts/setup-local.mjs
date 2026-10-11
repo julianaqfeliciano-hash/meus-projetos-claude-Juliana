@@ -34,11 +34,9 @@ NEXT_PUBLIC_NAAP_EMAIL=contato@naappsicologia.com.br
 NEXT_PUBLIC_NAAP_PHONE=(85) 99840-2825
 
 # Os e-mails não saem de verdade: ficam na caixa de teste em http://127.0.0.1:54324
-SMTP_HOST=127.0.0.1
-SMTP_PORT=54325
-SMTP_USER=demo
-SMTP_PASS=demo
-EMAIL_FROM="Mentorias NAAP <mentorias@naap.local>"
+MAILPIT_URL=${env.MAILPIT_URL || env.INBUCKET_URL || "http://127.0.0.1:54324"}
+EMAIL_FROM_NAME=Mentorias NAAP
+EMAIL_FROM_ADDRESS=mentorias@naap.local
 ADMIN_NOTIFY_EMAIL=coordenacao@naappsicologia.com.br
 `;
 

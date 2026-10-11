@@ -1,7 +1,7 @@
 // Preenche o Supabase LOCAL com dados de demonstração (admin, alunos, módulos,
 // vídeos, vendas e progresso), para apresentar o sistema com os relatórios cheios.
 // Uso: npm run demo:seed            (zera o banco local antes)
-//      npm run demo:seed -- https://youtu.be/SEU_VIDEO   (usa um vídeo real seu nos exemplos)
+//      npm run demo:seed -- "LINK_DE_EMBED_DO_PANDA"   (usa um vídeo real seu nos exemplos)
 import { execSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 
@@ -16,15 +16,23 @@ if (!/127\.0\.0\.1|localhost/.test(url)) {
   process.exit(1);
 }
 
-function youtubeId(input) {
+// Mesmo critério de src/lib/format.ts (parsePandaEmbedUrl).
+function pandaEmbedUrl(input) {
   if (!input) return null;
-  if (/^[\w-]{11}$/.test(input)) return input;
-  const m = input.match(/(?:youtu\.be\/|v=|embed\/|live\/|shorts\/)([\w-]{11})/);
-  return m ? m[1] : null;
+  const src = input.match(/src=["']([^"']+)["']/i)?.[1] ?? input.trim();
+  try {
+    const url = new URL(src);
+    const id = url.searchParams.get("v");
+    if (url.protocol !== "https:" || !/(^|\.)pandavideo\.com(\.br)?$/.test(url.hostname) || !id) return null;
+    return `https://${url.hostname}/embed/?v=${id}`;
+  } catch {
+    return null;
+  }
 }
-const demoVideo = youtubeId(process.argv[2]);
+const demoVideo = pandaEmbedUrl(process.argv[2]);
 if (process.argv[2] && !demoVideo) {
-  console.error("✖ Link do YouTube inválido:", process.argv[2]);
+  console.error("✖ Link do Panda Video inválido:", process.argv[2]);
+  console.error("  Use o link de incorporação, no formato https://player-vz-….tv.pandavideo.com.br/embed/?v=…");
   process.exit(1);
 }
 
@@ -73,17 +81,17 @@ const [m1, m2, m3] = must(
     { title: "Módulo 3 — Neuropsicologia", description: "Em preparação.", position: 3, published: false },
   ]).select(),
 );
-const yt = (fallback) => demoVideo ?? fallback;
+const panda = (n) => demoVideo ?? `https://player-vz-demo.tv.pandavideo.com.br/embed/?v=video-demo-${n}`;
 const videos = must(
   await db.from("videos").insert(
     [
-      { module_id: m1.id, title: "Mentoria — Entrevista inicial", youtube_id: yt("aaaaaaaaaaa"), recorded_on: isoDate(42), duration_minutes: 118, position: 1 },
-      { module_id: m1.id, title: "Mentoria — Escolha dos testes", youtube_id: yt("bbbbbbbbbbb"), recorded_on: isoDate(28), duration_minutes: 124, position: 2 },
-      { module_id: m1.id, title: "Mentoria — Elaboração do laudo", youtube_id: yt("ccccccccccc"), recorded_on: isoDate(14), duration_minutes: 121, position: 3,
+      { module_id: m1.id, title: "Mentoria — Entrevista inicial", video_url: panda(1), recorded_on: isoDate(42), duration_minutes: 118, position: 1 },
+      { module_id: m1.id, title: "Mentoria — Escolha dos testes", video_url: panda(2), recorded_on: isoDate(28), duration_minutes: 124, position: 2 },
+      { module_id: m1.id, title: "Mentoria — Elaboração do laudo", video_url: panda(3), recorded_on: isoDate(14), duration_minutes: 121, position: 3,
         description: "Estrutura do laudo psicológico conforme a Resolução CFP 06/2019, com exemplos comentados." },
-      { module_id: m2.id, title: "Mentoria — O brincar na clínica", youtube_id: yt("ddddddddddd"), recorded_on: isoDate(35), duration_minutes: 115, position: 1 },
-      { module_id: m2.id, title: "Mentoria — Devolutiva aos pais", youtube_id: yt("eeeeeeeeeee"), recorded_on: isoDate(21), duration_minutes: 117, position: 2 },
-      { module_id: m3.id, title: "Mentoria — Funções executivas", youtube_id: yt("fffffffffff"), recorded_on: isoDate(7), duration_minutes: 120, position: 1 },
+      { module_id: m2.id, title: "Mentoria — O brincar na clínica", video_url: panda(4), recorded_on: isoDate(35), duration_minutes: 115, position: 1 },
+      { module_id: m2.id, title: "Mentoria — Devolutiva aos pais", video_url: panda(5), recorded_on: isoDate(21), duration_minutes: 117, position: 2 },
+      { module_id: m3.id, title: "Mentoria — Funções executivas", video_url: panda(6), recorded_on: isoDate(7), duration_minutes: 120, position: 1 },
     ].map((v) => ({ description: "", published: true, notified_at: now.toISOString(), ...v })),
   ).select(),
 );
@@ -124,6 +132,6 @@ console.log(`
   Abra http://localhost:3000 (rode "npm run dev" se ainda não estiver rodando).
 ${demoVideo ? "" : `
   ⚠ Os vídeos de exemplo usam links fictícios e não tocam. Para a apresentação,
-    rode de novo passando um vídeo seu do YouTube (não listado):
-    npm run demo:seed -- https://youtu.be/SEU_VIDEO
+    rode de novo passando o link de incorporação de um vídeo seu no Panda Video:
+    npm run demo:seed -- "https://player-vz-….tv.pandavideo.com.br/embed/?v=…"
 `}`);

@@ -1,17 +1,5 @@
 import "server-only";
-import nodemailer from "nodemailer";
 import { brand, siteUrl } from "@/lib/config";
-
-function transporter() {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) return null;
-  const port = Number(process.env.SMTP_PORT || 465);
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
-}
 
 function escapeHtml(text: string) {
   return text.replace(/[&<>"']/g, (c) =>
@@ -32,14 +20,37 @@ function layout(title: string, body: string, cta?: { label: string; href: string
 </div>`;
 }
 
+/**
+ * Envia e-mail por API HTTPS (funciona na Cloudflare, que não abre conexões SMTP):
+ * - BREVO_API_KEY definido: envia pelo Brevo (produção; plano grátis de 300/dia);
+ * - MAILPIT_URL definido: entrega na caixa de teste local do Supabase;
+ * - nenhum dos dois: só registra no log.
+ */
 async function send(to: string, subject: string, html: string) {
-  const t = transporter();
-  if (!t) {
-    console.warn(`[email] SMTP não configurado; e-mail não enviado para ${to}: ${subject}`);
-    return false;
-  }
+  const fromName = process.env.EMAIL_FROM_NAME || "Mentorias NAAP";
+  const fromEmail = process.env.EMAIL_FROM_ADDRESS;
   try {
-    await t.sendMail({ from: process.env.EMAIL_FROM || process.env.SMTP_USER, to, subject, html });
+    let res: Response;
+    if (process.env.BREVO_API_KEY && fromEmail) {
+      res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": process.env.BREVO_API_KEY, "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ sender: { name: fromName, email: fromEmail }, to: [{ email: to }], subject, htmlContent: html }),
+      });
+    } else if (process.env.MAILPIT_URL) {
+      res = await fetch(`${process.env.MAILPIT_URL.replace(/\/$/, "")}/api/v1/send`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ From: { Email: fromEmail || "mentorias@naap.local", Name: fromName }, To: [{ Email: to }], Subject: subject, HTML: html }),
+      });
+    } else {
+      console.warn(`[email] envio não configurado; e-mail não enviado para ${to}: ${subject}`);
+      return false;
+    }
+    if (!res.ok) {
+      console.error(`[email] falha ao enviar para ${to}: ${res.status} ${await res.text()}`);
+      return false;
+    }
     return true;
   } catch (err) {
     console.error(`[email] falha ao enviar para ${to}`, err);

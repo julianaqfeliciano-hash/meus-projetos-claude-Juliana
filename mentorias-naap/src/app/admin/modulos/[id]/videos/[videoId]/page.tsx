@@ -33,7 +33,7 @@ export default async function VideoAdminPage(props: PageProps<"/admin/modulos/[i
           <section className="card">
             <h2 className="mb-3 font-semibold">Excluir</h2>
             <form action={deleteVideo.bind(null, video.id, id)}>
-              <ConfirmButton message="Excluir este vídeo e o progresso dos alunos nele? (O vídeo continua no YouTube.)">Excluir vídeo</ConfirmButton>
+              <ConfirmButton message="Excluir este vídeo e o progresso dos alunos nele? (O vídeo continua no Panda Video.)">Excluir vídeo</ConfirmButton>
             </form>
           </section>
         </div>

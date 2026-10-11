@@ -31,7 +31,7 @@ export default function TermsPage() {
       <h2>4. Disponibilidade</h2>
       <p>
         Empenhamo-nos em manter a plataforma disponível, mas podem ocorrer interrupções para
-        manutenção ou por falhas de serviços de terceiros (como hospedagem e YouTube).
+        manutenção ou por falhas de serviços de terceiros (como hospedagem e Panda Video).
       </p>
       <h2>5. Contato</h2>
       <p>{brand.name} · {brand.email} · {brand.phone}</p>

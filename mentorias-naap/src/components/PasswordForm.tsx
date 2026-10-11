@@ -1,14 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
 import { updatePassword } from "@/app/(site)/(auth)/actions";
+import { useActionForm } from "@/lib/use-action-form";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FormMessage } from "@/components/FormMessage";
 
 export function PasswordForm() {
-  const [state, action] = useActionState(updatePassword, undefined);
+  const { state, onSubmit, pending } = useActionForm(updatePassword);
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="label" htmlFor="password">Nova senha</label>
         <input className="input" id="password" name="password" type="password" minLength={8} autoComplete="new-password" required />
@@ -18,7 +18,7 @@ export function PasswordForm() {
         <input className="input" id="confirm" name="confirm" type="password" minLength={8} autoComplete="new-password" required />
       </div>
       <FormMessage state={state} />
-      <SubmitButton pendingText="Salvando...">Salvar senha</SubmitButton>
+      <SubmitButton pending={pending} pendingText="Salvando...">Salvar senha</SubmitButton>
     </form>
   );
 }

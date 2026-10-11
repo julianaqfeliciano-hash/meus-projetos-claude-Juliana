@@ -3,7 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Renova a sessão do Supabase a cada requisição. As checagens de permissão
 // (aprovado, administrador, sessão única) ficam em src/lib/auth.ts.
-export async function proxy(request: NextRequest) {
+// Usa a convenção "middleware" (Edge Runtime) em vez de "proxy" (Node.js),
+// porque é a que a hospedagem na Cloudflare (OpenNext) suporta oficialmente.
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

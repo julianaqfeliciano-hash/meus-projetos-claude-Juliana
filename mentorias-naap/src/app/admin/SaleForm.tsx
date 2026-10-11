@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { registerSale } from "./actions";
+import { useActionForm } from "@/lib/use-action-form";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FormMessage } from "@/components/FormMessage";
 import { paymentMethods } from "@/lib/types";
@@ -19,7 +20,7 @@ export function SaleForm({
   modules: Option[];
   pendingApproval?: boolean;
 }) {
-  const [state, action] = useActionState(registerSale, undefined);
+  const { state, onSubmit, pending } = useActionForm(registerSale);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (state?.success) formRef.current?.reset();
@@ -27,7 +28,7 @@ export function SaleForm({
 
   const today = new Date().toISOString().slice(0, 10);
   return (
-    <form ref={formRef} action={action} className="space-y-4">
+    <form ref={formRef} onSubmit={onSubmit} className="space-y-4">
       {studentId ? (
         <input type="hidden" name="student_id" value={studentId} />
       ) : (
@@ -79,7 +80,7 @@ export function SaleForm({
         </label>
       )}
       <FormMessage state={state} />
-      <SubmitButton pendingText="Registrando...">Registrar venda e liberar módulos</SubmitButton>
+      <SubmitButton pending={pending} pendingText="Registrando...">Registrar venda e liberar módulos</SubmitButton>
     </form>
   );
 }

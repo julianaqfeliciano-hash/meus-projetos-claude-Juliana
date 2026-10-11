@@ -1,15 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
 import { saveModule } from "../actions";
+import { useActionForm } from "@/lib/use-action-form";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FormMessage } from "@/components/FormMessage";
 import type { Module } from "@/lib/types";
 
 export function ModuleForm({ module }: { module?: Module }) {
-  const [state, action] = useActionState(saveModule, undefined);
+  const { state, onSubmit, pending } = useActionForm(saveModule);
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       {module && <input type="hidden" name="id" value={module.id} />}
       <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
         <div>
@@ -29,7 +29,7 @@ export function ModuleForm({ module }: { module?: Module }) {
         <input type="checkbox" name="published" defaultChecked={module?.published ?? true} /> Publicado (visível para os alunos)
       </label>
       <FormMessage state={state} />
-      <SubmitButton pendingText="Salvando...">{module ? "Salvar módulo" : "Criar módulo"}</SubmitButton>
+      <SubmitButton pending={pending} pendingText="Salvando...">{module ? "Salvar módulo" : "Criar módulo"}</SubmitButton>
     </form>
   );
 }

@@ -28,7 +28,7 @@ export type Video = {
   module_id: string;
   title: string;
   description: string;
-  youtube_id: string;
+  video_url: string; // link de incorporação do Panda Video
   recorded_on: string | null;
   duration_minutes: number | null;
   pdf_path: string | null;

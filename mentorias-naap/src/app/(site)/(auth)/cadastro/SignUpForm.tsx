@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
 import { signUp } from "../actions";
+import { useActionForm } from "@/lib/use-action-form";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FormMessage } from "@/components/FormMessage";
 
 export function SignUpForm() {
-  const [state, action] = useActionState(signUp, undefined);
+  const { state, onSubmit, pending } = useActionForm(signUp);
   if (state?.success) return <FormMessage state={state} />;
 
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="label" htmlFor="full_name">Nome completo</label>
         <input className="input" id="full_name" name="full_name" autoComplete="name" required />
@@ -43,7 +43,7 @@ export function SignUpForm() {
         </span>
       </label>
       <FormMessage state={state} />
-      <SubmitButton className="btn-primary w-full" pendingText="Cadastrando...">Criar conta</SubmitButton>
+      <SubmitButton pending={pending} className="btn-primary w-full" pendingText="Cadastrando...">Criar conta</SubmitButton>
       <p className="text-center text-sm">
         Já tem conta? <Link href="/entrar" className="text-primary hover:underline">Entrar</Link>
       </p>

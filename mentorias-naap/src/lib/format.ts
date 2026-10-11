@@ -24,17 +24,33 @@ export function formatDuration(seconds: number) {
   return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m} min`;
 }
 
-/** Aceita link do YouTube em qualquer formato (ou só o ID) e devolve o ID. */
-export function parseYouTubeId(input: string): string | null {
+/** Segundos no formato de relógio: 1:05:09 ou 32:10. */
+export function formatClock(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  const mm = h ? String(m).padStart(2, "0") : String(m);
+  return `${h ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
+}
+
+/** Domínios do player do Panda Video (ex.: player-vz-xxxx.tv.pandavideo.com.br). */
+export function isPandaHost(hostname: string) {
+  return /(^|\.)pandavideo\.com(\.br)?$/.test(hostname);
+}
+
+/**
+ * Aceita o link de incorporação do Panda Video, ou o código <iframe> inteiro
+ * copiado do painel, e devolve o link normalizado (…/embed/?v=ID).
+ */
+export function parsePandaEmbedUrl(input: string): string | null {
   const value = input.trim();
-  if (/^[\w-]{11}$/.test(value)) return value;
+  const src = value.match(/src=["']([^"']+)["']/i)?.[1] ?? value;
   try {
-    const url = new URL(value);
-    if (url.hostname.includes("youtu.be")) return url.pathname.slice(1, 12) || null;
-    const v = url.searchParams.get("v");
-    if (v) return v.slice(0, 11);
-    const match = url.pathname.match(/\/(?:embed|live|shorts|v)\/([\w-]{11})/);
-    return match ? match[1] : null;
+    const url = new URL(src);
+    if (url.protocol !== "https:" || !isPandaHost(url.hostname)) return null;
+    const id = url.searchParams.get("v");
+    if (!id || !/^[\w-]{8,64}$/.test(id)) return null;
+    return `https://${url.hostname}/embed/?v=${id}`;
   } catch {
     return null;
   }

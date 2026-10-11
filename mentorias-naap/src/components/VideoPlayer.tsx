@@ -2,50 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isPandaHost } from "@/lib/format";
 
-// Tipos mínimos da API de iframe do YouTube.
-type YTPlayer = {
-  getCurrentTime(): number;
-  getDuration(): number;
-  pauseVideo(): void;
-  destroy(): void;
-};
-type YTNamespace = {
-  Player: new (
-    el: HTMLElement,
-    opts: {
-      videoId: string;
-      playerVars?: Record<string, number | string>;
-      events?: { onStateChange?: (e: { data: number }) => void };
-    },
-  ) => YTPlayer;
-  PlayerState: { PLAYING: number; PAUSED: number; ENDED: number };
-};
-
-declare global {
-  interface Window {
-    YT?: YTNamespace;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
-
-let apiPromise: Promise<YTNamespace> | null = null;
-function loadYouTubeApi(): Promise<YTNamespace> {
-  if (window.YT?.Player) return Promise.resolve(window.YT);
-  if (!apiPromise) {
-    apiPromise = new Promise((resolve) => {
-      const previous = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        previous?.();
-        resolve(window.YT!);
-      };
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(script);
-    });
-  }
-  return apiPromise;
-}
+// Eventos que o player do Panda Video envia à página por postMessage
+// (ex.: { message: "panda_timeupdate", currentTime: 12.3, video: "<id>" }).
+type PandaEvent = { message?: string; currentTime?: number; duration?: number };
 
 const TICK_MS = 15_000;
 // Cantos por onde a marca d'água circula (o canto superior direito é do botão de tela cheia).
@@ -53,20 +14,23 @@ const CORNERS = ["top-3 left-3", "top-14 right-3", "bottom-14 right-3", "bottom-
 
 export function VideoPlayer({
   videoId,
-  youtubeId,
-  startSeconds,
+  embedUrl,
+  durationSeconds,
   watermark,
   trackProgress,
 }: {
   videoId: string;
-  youtubeId: string;
-  startSeconds: number;
+  embedUrl: string;
+  /** Duração cadastrada pela administração; usada se o player não informar. */
+  durationSeconds: number;
   watermark: string[];
   trackProgress: boolean;
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const mountRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<YTPlayer | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const positionRef = useRef(0);
+  const durationRef = useRef(durationSeconds);
+  const playingRef = useRef(false);
   const lastTickRef = useRef<number | null>(null);
   const newViewRef = useRef(true);
   const [corner, setCorner] = useState(0);
@@ -74,67 +38,81 @@ export function VideoPlayer({
   const [error, setError] = useState<string | null>(null);
 
   const report = useCallback(async () => {
-    const player = playerRef.current;
-    if (!trackProgress || !player) return;
+    if (!trackProgress) return;
     const now = Date.now();
     const delta = lastTickRef.current ? Math.round((now - lastTickRef.current) / 1000) : 0;
-    lastTickRef.current = now;
+    lastTickRef.current = playingRef.current ? now : null;
     const { error: rpcError } = await createClient().rpc("track_progress", {
       p_video: videoId,
-      p_position: Math.floor(player.getCurrentTime() || 0),
-      p_duration: Math.floor(player.getDuration() || 0),
+      p_position: Math.floor(positionRef.current),
+      p_duration: Math.floor(durationRef.current),
       p_delta: delta,
       p_new_view: newViewRef.current,
     });
     if (rpcError) {
       // Normalmente significa que a conta foi aberta em outro aparelho.
-      player.pauseVideo();
       setError("Sua sessão foi encerrada. Entre novamente para continuar assistindo.");
       return;
     }
     newViewRef.current = false;
   }, [trackProgress, videoId]);
 
+  // Escuta os eventos do player do Panda.
   useEffect(() => {
-    let cancelled = false;
-    let interval: ReturnType<typeof setInterval> | undefined;
+    function onMessage(e: MessageEvent) {
+      if (e.source !== iframeRef.current?.contentWindow) return;
+      try {
+        if (!isPandaHost(new URL(e.origin).hostname)) return;
+      } catch {
+        return;
+      }
+      let data: PandaEvent = e.data;
+      if (typeof data === "string") {
+        try {
+          data = JSON.parse(data);
+        } catch {
+          return;
+        }
+      }
+      if (!data || typeof data !== "object") return;
+      if (typeof data.currentTime === "number") positionRef.current = data.currentTime;
+      if (typeof data.duration === "number" && data.duration > 0) durationRef.current = data.duration;
 
-    loadYouTubeApi().then((YT) => {
-      if (cancelled || !mountRef.current) return;
-      playerRef.current = new YT.Player(mountRef.current, {
-        videoId: youtubeId,
-        playerVars: {
-          start: Math.floor(startSeconds),
-          rel: 0,
-          modestbranding: 1,
-          fs: 0, // tela cheia pelo nosso botão, para manter a marca d'água visível
-          playsinline: 1,
-        },
-        events: {
-          onStateChange: (e) => {
-            if (e.data === YT.PlayerState.PLAYING) {
-              lastTickRef.current = Date.now();
-              clearInterval(interval);
-              interval = setInterval(report, TICK_MS);
-              if (newViewRef.current) void report();
-            } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
-              clearInterval(interval);
-              void report();
-              lastTickRef.current = null;
-            }
-          },
-        },
-      });
-    });
-
+      switch (data.message) {
+        case "panda_play":
+          if (!playingRef.current) {
+            playingRef.current = true;
+            lastTickRef.current = Date.now();
+            if (newViewRef.current) void report();
+          }
+          break;
+        case "panda_timeupdate":
+          // Alguns players não enviam "play" ao retomar; o avanço do tempo basta.
+          if (!playingRef.current) {
+            playingRef.current = true;
+            lastTickRef.current = Date.now();
+          }
+          break;
+        case "panda_pause":
+        case "panda_ended":
+          if (playingRef.current) {
+            void report();
+            playingRef.current = false;
+            lastTickRef.current = null;
+          }
+          break;
+      }
+    }
+    window.addEventListener("message", onMessage);
+    const interval = setInterval(() => {
+      if (playingRef.current) void report();
+    }, TICK_MS);
     return () => {
-      cancelled = true;
+      window.removeEventListener("message", onMessage);
       clearInterval(interval);
-      if (lastTickRef.current) void report();
-      playerRef.current?.destroy();
-      playerRef.current = null;
+      if (playingRef.current) void report();
     };
-  }, [youtubeId, startSeconds, report]);
+  }, [report]);
 
   // A marca d'água muda de canto periodicamente.
   useEffect(() => {
@@ -171,7 +149,18 @@ export function VideoPlayer({
       }
     >
       <div className={fullscreen ? "relative aspect-video max-h-full w-full" : "relative aspect-video w-full"}>
-        <div ref={mountRef} className="absolute inset-0 h-full w-full [&>iframe]:h-full [&>iframe]:w-full" />
+        {!error && (
+          // Sem "allowfullscreen": a tela cheia é feita pelo nosso botão, para a
+          // marca d'água continuar visível.
+          <iframe
+            ref={iframeRef}
+            src={embedUrl}
+            title="Vídeo da mentoria"
+            className="absolute inset-0 h-full w-full border-0"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        )}
 
         {/* Marca d'água: não bloqueia cliques no player. */}
         <div

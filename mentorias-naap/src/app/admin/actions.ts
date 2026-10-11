@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendApprovedEmail, sendNewVideoEmail } from "@/lib/email";
-import { parseYouTubeId } from "@/lib/format";
+import { parsePandaEmbedUrl } from "@/lib/format";
 import type { ActionState } from "@/lib/action-state";
 import type { ProfileStatus } from "@/lib/types";
 
@@ -146,18 +146,21 @@ export async function saveVideo(_: ActionState, form: FormData): Promise<ActionS
   const id = str(form, "id");
   const moduleId = str(form, "module_id");
   const title = str(form, "title");
-  const youtubeId = parseYouTubeId(str(form, "youtube"));
+  const videoUrl = parsePandaEmbedUrl(str(form, "video_url"));
   if (!title) return { error: "Informe o título do vídeo." };
-  if (!youtubeId) return { error: "Link do YouTube inválido. Cole o link do vídeo não listado." };
+  if (!videoUrl)
+    return { error: "Link do Panda Video inválido. No painel do Panda, abra o vídeo e copie o link (ou o código) de incorporação." };
 
   const duration = Number(str(form, "duration_minutes"));
+  if (!Number.isFinite(duration) || duration <= 0)
+    return { error: "Informe a duração do vídeo em minutos (usada no cálculo de % assistido)." };
   const values = {
     module_id: moduleId,
     title,
     description: str(form, "description"),
-    youtube_id: youtubeId,
+    video_url: videoUrl,
     recorded_on: str(form, "recorded_on") || null,
-    duration_minutes: Number.isFinite(duration) && duration > 0 ? Math.round(duration) : null,
+    duration_minutes: Math.round(duration),
     position: Number(str(form, "position") || 0),
     published: form.get("published") === "on",
   };

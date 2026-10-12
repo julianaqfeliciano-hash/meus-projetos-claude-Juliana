@@ -6,3 +6,6 @@
 .env.keys
 .env.local
 .env.*.local
+
+# Consultas salvas pelo painel local (Studio)
+snippets

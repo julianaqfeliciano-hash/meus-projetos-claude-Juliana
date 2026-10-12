@@ -98,6 +98,12 @@ Para testar a versão de produção na sua máquina, no mesmo motor da Cloudflar
 
 O manual completo, com capturas de tela, está em `docs/manual/Manual-Mentorias-NAAP.pdf`.
 
+Há também **vídeos curtos** (cerca de 1 minuto cada, sem áudio, com legendas na tela) em `docs/videos/`:
+
+- **Aluno(a)**: [criar a conta e entrar](docs/videos/Aluno-1-Criar-a-conta-e-entrar.mp4) · [assistir às mentorias](docs/videos/Aluno-2-Assistindo-as-mentorias.mp4)
+- **Administração**: [aprovar alunos e liberar módulos](docs/videos/Administracao-1-Aprovar-alunos-e-liberar-modulos.mp4) · [criar módulo e publicar vídeo](docs/videos/Administracao-2-Criar-modulo-e-publicar-video.mp4) · [relatórios, exportar e bloquear](docs/videos/Administracao-3-Relatorios-exportar-e-bloquear.mp4)
+- **Responsável técnico**: [rodar a demonstração local](docs/videos/Tecnico-1-Rodar-a-demonstracao-local.mp4) · [publicar na Cloudflare e criar o administrador](docs/videos/Tecnico-2-Publicar-na-Cloudflare-e-criar-administrador.mp4)
+
 Para mudar as **cores**, edite o início de `src/app/globals.css`. Para usar o **logo**, troque o componente `src/components/Logo.tsx` por uma imagem em `public/`.
 
 ---

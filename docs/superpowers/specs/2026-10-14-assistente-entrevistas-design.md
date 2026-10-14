@@ -6,22 +6,22 @@
 
 ## 1. Objetivo
 
-Aplicativo para Windows que acompanha entrevistas de emprego feitas pelo Microsoft Teams ou pelo Google Meet. Ele ouve a voz do entrevistador e a da usuária, transcreve tudo ao vivo e, quando a usuária aperta um atalho, mostra uma resposta pronta para ser lida em voz alta, baseada nas experiências reais dela.
+Aplicativo para Windows que acompanha entrevistas de emprego feitas pelo Microsoft Teams ou pelo Google Meet. Ele ouve a voz do entrevistador e a da usuária, transcreve tudo ao vivo e, assim que o entrevistador termina uma pergunta, mostra automaticamente uma resposta pronta para ser lida em voz alta, baseada nas experiências reais dela. Um atalho permite pedir uma resposta a qualquer momento.
 
 Tipos de entrevista atendidos: comportamental/RH e técnica com perguntas faladas, em português ou inglês.
 
 Critérios de sucesso:
 
 1. A janela do assistente não aparece quando a usuária compartilha a tela no Teams ou no Meet.
-2. As primeiras palavras da resposta aparecem em até 2 segundos depois do atalho (medido no teste de qualidade, seção 11).
+2. As primeiras palavras da resposta aparecem em até 3 segundos depois que o entrevistador termina a pergunta, ou em até 2 segundos depois do atalho (medido no teste de qualidade, seção 11).
 3. A resposta soa como uma pessoa falando de forma formal e natural, sem marcas de texto gerado por IA e sem nenhum texto que não seja a própria fala.
 4. A resposta liga a pergunta a uma experiência real dos documentos da usuária sempre que existir uma, com detalhes técnicos tirados desses documentos.
 5. Toda entrevista fica salva em arquivo com transcrição e sugestões, mesmo se o app fechar sem querer.
+6. A detecção automática acerta pelo menos 9 em cada 10 falas do conjunto de teste ao decidir se a fala pede resposta.
 
 ## 2. Fora do escopo
 
 - Ler a tela (exercícios de código exibidos na tela).
-- Sugestões automáticas sem o atalho.
 - Esconder o programa de softwares de monitoramento, antifraude ou fiscalização de entrevistas (sumir do Gerenciador de Tarefas, se disfarçar de outro programa e afins).
 - Inventar experiências profissionais e apresentá-las como da usuária (ver regra dos três níveis, seção 4.1).
 - Servidor próprio, contas de usuário, venda do app.
@@ -39,6 +39,7 @@ Critérios de sucesso:
   - Documento de experiências detalhadas: PDF, Word ou texto. Aviso se os documentos somados passarem do limite de um pedido à API do Claude (600 páginas ou 32 MB).
 - **Esta entrevista:** empresa, descrição da vaga (opcional, colada como texto) e idioma (português ou inglês).
 - **Modo de resposta:** Equilíbrio (padrão), Turbo ou Econômico (seção 7).
+- **Detecção automática de perguntas:** ligada por padrão (seção 3.3).
 - **Botão "Testar tudo":** em cerca de 30 segundos confere as duas chaves, se o microfone capta a voz e se o som do computador está chegando (a usuária toca qualquer vídeo). Mostra o resultado de cada item.
 - **Botão "Iniciar":** abre a janela flutuante, começa a ouvir e pré-carrega os documentos no Claude.
 - **Botão "Abrir pasta de entrevistas".**
@@ -49,19 +50,32 @@ Critérios de sucesso:
 - Não aparece no compartilhamento de tela nem na barra de tarefas.
 - Não rouba o foco: o Teams/Meet continua sendo a janela ativa.
 - Parte de cima: indicador "ouvindo" com o idioma e a transcrição ao vivo rotulada "ENTREVISTADOR" e "VOCÊ".
-- Parte de baixo: a sugestão, em letra grande e parágrafos curtos, aparecendo palavra por palavra.
+- Parte de baixo: uma linha cinza e pequena com a pergunta que está sendo respondida (texto da interface, não da IA) e, abaixo, a sugestão em letra grande e parágrafos curtos, aparecendo palavra por palavra.
+- Uma sugestão nova substitui a anterior na tela; todas ficam no arquivo da entrevista.
 - Rolagem pela roda do mouse.
 
 Atalhos globais:
 
 | Atalho | Ação |
 |---|---|
-| `Ctrl+Alt+Enter` | Gera a sugestão para a pergunta mais recente do entrevistador |
+| `Ctrl+Alt+Enter` | Gera a sugestão agora, para a pergunta mais recente do entrevistador (útil quando a detecção não reconhece uma pergunta) |
+| `Ctrl+Alt+A` | Liga ou desliga a detecção automática |
 | `Ctrl+Alt+H` | Mostra ou esconde a janela |
 | `Ctrl+Alt+T` | Alterna a sugestão atual entre o idioma da entrevista e português |
 | `Ctrl+Alt+P` | Pausa ou retoma a escuta |
 
-### 3.3 Depois da entrevista
+### 3.3 Detecção automática de perguntas
+
+- O app acompanha a fala do entrevistador o tempo todo. Quando ele fica cerca de 1 segundo em silêncio, a fala é considerada terminada.
+- Cada fala terminada passa por um modelo leve que decide se ela pede resposta ("responder" ou "nada"). O resultado para a usuária:
+  - **pergunta de entrevista:** resposta completa (seção 4);
+  - **pergunta simples** ("Está me ouvindo?", "Tudo bem?", "Podemos começar?"): uma frase curta, porque o modelo principal ajusta o tamanho sozinho (seção 4.2);
+  - **nada a responder** ("Legal, obrigado", explicações sobre a vaga, comentários): a tela não muda.
+- Para ganhar tempo, a geração da resposta começa junto com a classificação; se a classificação for "nada", a geração é cancelada e nada aparece.
+- Se o entrevistador voltar a falar antes de a usuária começar a responder (pausa no meio da pergunta), a resposta em andamento é descartada e refeita com a pergunta completa quando ele terminar de novo.
+- Com a detecção desligada (`Ctrl+Alt+A`), o app só responde pelo atalho `Ctrl+Alt+Enter`.
+
+### 3.4 Depois da entrevista
 
 O arquivo `Documentos\Assistente de Entrevistas\AAAA-MM-DD HHhMM - <Empresa>.txt` já foi sendo escrito durante a entrevista. Ele contém o cabeçalho (empresa, idioma, modo, horário), a transcrição completa com horário de cada fala, cada sugestão gerada logo depois da fala a que respondeu e, no fim, o custo estimado da entrevista.
 
@@ -80,7 +94,8 @@ A resposta nunca atribui à usuária uma experiência, empresa, projeto, número
 ### 4.2 Formato e tom
 
 - Só o texto da fala, em primeira pessoa. Nada antes nem depois: sem "Aqui está a resposta", sem títulos, rótulos, tópicos ou comentários.
-- De 80 a 150 palavras (30 a 60 segundos de fala), em 2 ou 3 parágrafos curtos.
+- Pergunta de entrevista: de 80 a 150 palavras (30 a 60 segundos de fala), em 2 ou 3 parágrafos curtos.
+- Pergunta simples: uma frase curta e cordial.
 - No idioma da entrevista. A tradução para português (atalho `Ctrl+Alt+T`) segue as mesmas regras.
 - Registro formal e profissional, mas humano. Em inglês, contrações naturais da fala ("I've", "we're") são permitidas. Sem gírias nem marcas de informalidade.
 - Proibido, por soar como IA:
@@ -110,11 +125,12 @@ Cada componente tem uma responsabilidade e uma interface pequena, para ser testa
 | Componente | Arquivo | Responsabilidade | Interface |
 |---|---|---|---|
 | Captura de áudio | `src/renderer/audio/capture.ts` | Captura o microfone (`getUserMedia`, com cancelamento de eco) e o som do sistema (`getDisplayMedia` com `audio: 'loopback'`, liberado no processo principal por `setDisplayMediaRequestHandler`). Converte cada fonte para PCM 16 bits, 16 kHz, mono, num AudioWorklet. | `start(): Promise<void>`, `stop()`, emite blocos `{ fonte: 'voce' \| 'entrevistador', pcm: ArrayBuffer }` via IPC |
-| Transcrição | `src/main/transcription/deepgram.ts` | Uma conexão de streaming por fonte, modelo `nova-3`, `language` = `pt-BR` ou `en`, resultados parciais e finais, `smart_format`, `mip_opt_out=true`. Reconecta sozinha com espera crescente. | `class FluxoDeepgram { conectar(idioma, fonte); enviar(pcm); encerrar(); on('fala', cb); on('estado', cb) }` |
+| Transcrição | `src/main/transcription/deepgram.ts` | Uma conexão de streaming por fonte, modelo `nova-3`, `language` = `pt-BR` ou `en`, resultados parciais e finais, `smart_format`, `endpointing=300`, `utterance_end_ms=1000`, `mip_opt_out=true`. Avisa quando uma pessoa termina de falar. Reconecta sozinha com espera crescente. | `class FluxoDeepgram { conectar(idioma, fonte); enviar(pcm); encerrar(); on('fala', cb); on('fimDeFala', cb); on('estado', cb) }` |
+| Detector de perguntas | `src/main/suggestions/detector.ts` | Junta as falas do entrevistador desde a última resposta da usuária; no `fimDeFala` do entrevistador, dispara em paralelo a classificação e a geração; cancela a geração se a classificação for "nada a responder"; descarta e refaz se o entrevistador voltar a falar antes de a usuária responder. Respeita liga/desliga e pausa. | `class Detector { ligar(); desligar(); aoFalar(fala); aoTerminarFala(fonte); on('responder', cb); on('cancelar', cb) }` |
 | Buffer da conversa | `src/main/session/conversa.ts` | Guarda as falas (parciais e finais) com horário e quem falou. Devolve os últimos 5 minutos para o prompt. | `adicionar(fala)`, `ultimosMinutos(n): Fala[]` |
 | Leitor de documentos | `src/main/documents/leitor.ts` | PDF vira bloco `document` em base64 (lido pelo próprio Claude); Word vira texto via `mammoth`; .txt/.md entram como texto. | `lerDocumento(caminho): Promise<DocumentoLido>` |
 | Montagem do pedido | `src/main/suggestions/prompt.ts` | Função pura que monta o pedido ao Claude: regras (seção 4) + documentos (com `cache_control`) + vaga + últimos minutos da conversa + instrução final. | `montarPedido(perfil, entrevista, falas, modo): MessageCreateParams` |
-| Cliente Claude | `src/main/suggestions/claude.ts` | Pré-carrega o cache, gera a sugestão em streaming, traduz, trata recusa, erro e nova tentativa. Usa o SDK oficial `@anthropic-ai/sdk`. | `preCarregar(perfil)`, `gerar(pedido, aoReceberTexto): Promise<Resultado>`, `traduzir(texto, idioma)` |
+| Cliente Claude | `src/main/suggestions/claude.ts` | Pré-carrega o cache, gera a sugestão em streaming, traduz, trata recusa, erro e nova tentativa. Usa o SDK oficial `@anthropic-ai/sdk`. | `preCarregar(perfil)`, `classificar(fala): Promise<'responder' \| 'nada'>`, `gerar(pedido, aoReceberTexto, sinalCancelamento): Promise<Resultado>`, `traduzir(texto, idioma)` |
 | Arquivo da entrevista | `src/main/session/registro.ts` | Cria o .txt e acrescenta cada fala final e cada sugestão assim que chegam (só acrescenta, nunca reescreve). | `abrir(entrevista)`, `registrarFala(f)`, `registrarSugestao(s)`, `fechar(custo)` |
 | Custos | `src/main/session/custos.ts` | Soma minutos de áudio enviados e tokens informados em `usage` pelo Claude; calcula o custo estimado. | `somarAudio(seg)`, `somarUso(usage, modelo)`, `total(): number` |
 | Cofre de chaves | `src/main/config/cofre.ts` | Guarda e lê as chaves com `safeStorage` (proteção DPAPI do Windows). | `salvar(nome, valor)`, `ler(nome)` |
@@ -126,9 +142,14 @@ Cada componente tem uma responsabilidade e uma interface pequena, para ser testa
 
 1. **Iniciar:** carrega perfil e chaves → abre o arquivo da entrevista → cria a janela flutuante → inicia a captura → abre as duas conexões com o Deepgram → `preCarregar(perfil)` envia regras e documentos ao Claude com `max_tokens: 0` para gravar o cache.
 2. **Durante:** blocos de áudio → Deepgram → falas parciais (mostradas na janela) e finais (mostradas, guardadas no buffer e gravadas no arquivo).
-3. **Atalho `Ctrl+Alt+Enter`:** buffer (últimos 5 minutos, incluindo a fala parcial em andamento) → `montarPedido`, cuja instrução final pede a resposta para a pergunta mais recente do entrevistador presente nesse trecho → `gerar` em streaming → cada pedaço de texto vai para a janela → ao terminar, a sugestão é gravada no arquivo e o custo é somado. Um novo atalho durante uma geração cancela a anterior e começa outra.
-4. **Atalho `Ctrl+Alt+T`:** na primeira vez traduz a sugestão atual (resultado guardado); as próximas só alternam entre as duas versões.
-5. **Encerrar** (fechar a janela flutuante ou o app): fecha as conexões, grava o custo no arquivo e volta à tela de preparação.
+3. **Fim de uma fala do entrevistador (detecção ligada):** o Deepgram avisa `fimDeFala` → o detector dispara ao mesmo tempo `classificar(fala)` e `gerar` em streaming, com o pedido montado por `montarPedido` (últimos 5 minutos da conversa; instrução final pede a resposta para a pergunta mais recente do entrevistador). Os primeiros pedaços de texto ficam guardados até a classificação chegar:
+   - "responder": o texto guardado e o que vier depois aparecem na janela;
+   - "nada": a geração é cancelada e a janela não muda.
+
+   Ao terminar, a sugestão é gravada no arquivo e o custo é somado. Se o entrevistador voltar a falar antes de a usuária começar a responder, a geração em andamento é cancelada e o ciclo recomeça quando ele terminar.
+4. **Atalho `Ctrl+Alt+Enter`:** mesmo pedido, sem classificação; a resposta aparece direto. Um novo atalho durante uma geração cancela a anterior e começa outra.
+5. **Atalho `Ctrl+Alt+T`:** na primeira vez traduz a sugestão atual (resultado guardado); as próximas só alternam entre as duas versões.
+6. **Encerrar** (fechar a janela flutuante ou o app): fecha as conexões, grava o custo no arquivo e volta à tela de preparação.
 
 ## 7. Velocidade e modos
 
@@ -138,6 +159,10 @@ Técnicas usadas em todos os modos:
 - Cache de prompt com TTL de 1 hora, gravado no "Iniciar". O prefixo em cache é o que não muda durante a entrevista: regras, documentos e vaga. Só o trecho da conversa vem depois do ponto de cache.
 - Só os últimos 5 minutos da conversa vão no pedido.
 - Resposta curta (seção 4.2) e `max_tokens` de 1.000.
+- Fim de fala detectado pelo próprio Deepgram (cerca de 1 segundo de silêncio), sem esperar a usuária.
+- Classificação e geração começam juntas (seção 6, passo 3), para a classificação não somar tempo.
+
+A classificação usa sempre `claude-haiku-5-5` com pensamento desligado e `max_tokens` de 5, independente do modo.
 
 | Modo | Modelo | Configuração |
 |---|---|---|
@@ -158,6 +183,9 @@ Os detalhes de cada parâmetro serão conferidos na referência do SDK no moment
 | Microfone ou som do sistema indisponível | Aviso ao clicar em "Iniciar", antes de abrir a janela flutuante. |
 | Atalho já usado por outro programa | Aviso com o nome do atalho que não funcionou. |
 | Documento ilegível ou grande demais | Aviso ao salvar o perfil, com o nome do arquivo. |
+| Classificação falha ou demora mais de 2 s | A fala é tratada como "responder" (melhor sobrar uma sugestão do que faltar). |
+| Entrevistador pausa no meio da pergunta | Resposta em andamento descartada e refeita quando ele terminar (seção 3.3). |
+| Detecção deixa passar uma pergunta | A usuária aperta `Ctrl+Alt+Enter`. |
 | App fecha sem querer | Nada se perde: o arquivo é escrito em tempo real. |
 
 ## 9. Custos estimados (por hora de entrevista)
@@ -165,8 +193,9 @@ Os detalhes de cada parâmetro serão conferidos na referência do SDK no moment
 | Item | Estimativa |
 |---|---|
 | Transcrição Deepgram (2 vozes × 60 min, ~US$ 0,006 a 0,009 por minuto de cada voz) | US$ 0,70 a 1,10 |
-| Claude, modo Equilíbrio (cache dos documentos + ~25 sugestões de ~US$ 0,02 a 0,03) | US$ 0,60 a 0,90 |
-| **Total no modo Equilíbrio** | **~US$ 1,30 a 2,00** |
+| Claude, modo Equilíbrio (cache dos documentos + ~35 a 45 gerações, contando as canceladas e refeitas, de ~US$ 0,02 a 0,03) | US$ 0,90 a 1,30 |
+| Classificação das falas (Haiku, ~60 falas) | menos de US$ 0,05 |
+| **Total no modo Equilíbrio** | **~US$ 1,60 a 2,50** |
 | Modo Turbo | parte do Claude custa o dobro (~US$ 0,60 a 0,90 a mais) |
 | Modo Econômico | parte do Claude fica em centavos |
 
@@ -190,7 +219,10 @@ Os preços do Deepgram variam entre fontes e serão conferidos na página oficia
    - `registro`: arquivo só acrescenta e sobrevive a fechamento abrupto.
    - `custos`: cálculo por modo.
    - `atalhos`: aviso quando um atalho não registra.
-2. **Teste de qualidade e velocidade** (`npm run avaliar`, precisa da chave do Claude, custo abaixo de US$ 1): 10 perguntas de exemplo (RH e técnicas, português e inglês) contra um perfil de teste. Para cada modo, mede o tempo até a primeira palavra e confere a regra dos três níveis, o tamanho e a ausência das expressões proibidas da seção 4.2. O resultado decide o modo padrão.
+   - `Detector` (com relógio falso): dispara no fim da fala do entrevistador; cancela em "nada"; descarta e refaz quando o entrevistador volta a falar; trata falha da classificação como "responder"; não dispara com a detecção desligada ou a escuta pausada.
+2. **Teste de qualidade e velocidade** (`npm run avaliar`, precisa da chave do Claude, custo abaixo de US$ 1,50):
+   - 10 perguntas de exemplo (RH e técnicas, português e inglês) contra um perfil de teste. Para cada modo, mede o tempo até a primeira palavra e confere a regra dos três níveis, o tamanho e a ausência das expressões proibidas da seção 4.2. O resultado decide o modo padrão.
+   - 30 falas de entrevistador (perguntas de entrevista, perguntas simples, comentários e perguntas cortadas no meio) para medir o acerto da classificação (critério 6 da seção 1) e o tempo da classificação.
 3. **Roteiro de teste no Windows da usuária**, entregue junto com o instalador:
    - "Testar tudo" com fone de ouvido.
    - Chamada de teste do Teams: compartilhar a tela e confirmar que a janela flutuante não aparece.
@@ -212,3 +244,5 @@ Os preços do Deepgram variam entre fontes e serão conferidos na página oficia
 | Tempo até a primeira palavra acima de 2 s no modo Equilíbrio | Medido no teste de qualidade; se acontecer, o padrão passa a ser Turbo ou Econômico, conforme o resultado. |
 | Arrastar e rolar a janela com `focusable: false` | Conferido no roteiro do Windows; se falhar, a janela passa a aceitar foco só enquanto o mouse está sobre ela. |
 | Sem fone, o microfone capta o entrevistador | Cancelamento de eco ligado e recomendação explícita de fone na tela de preparação e no "Testar tudo". |
+| Classificação errando abaixo de 9 em 10 | Medido no teste de qualidade; ajuste das instruções e dos exemplos da classificação até atingir o critério. |
+| 1 segundo de silêncio corta perguntas longas com pausas | Medido no roteiro do Windows; o descarte-e-refaz da seção 3.3 cobre o caso, e o tempo de silêncio (`utterance_end_ms`) pode ser aumentado. |

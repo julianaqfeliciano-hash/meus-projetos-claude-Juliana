@@ -51,6 +51,12 @@ describe('preferências', () => {
     await salvarPreferencias(dir, { ...PREFERENCIAS_PADRAO, sobreVoce: 'Outra' });
     expect(await fs.readdir(dir)).toEqual(['config.json']);
   });
+  it('gravações ao mesmo tempo não falham e não deixam arquivo temporário', async () => {
+    const pedidos = [1, 2, 3, 4, 5].map((n) => salvarPreferencias(dir, { ...PREFERENCIAS_PADRAO, sobreVoce: `v${n}` }));
+    await expect(Promise.all(pedidos)).resolves.toBeDefined();
+    expect(await fs.readdir(dir)).toEqual(['config.json']);
+    expect((await lerPreferencias(dir)).sobreVoce).toMatch(/^v[1-5]$/);
+  });
   it('arquivo corrompido devolve padrões', async () => {
     await fs.writeFile(path.join(dir, 'config.json'), '{oops');
     expect(await lerPreferencias(dir)).toEqual(PREFERENCIAS_PADRAO);

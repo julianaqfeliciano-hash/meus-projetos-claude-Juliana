@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { gravarAtomico } from './gravar-atomico';
 
 export interface Cripto {
   disponivel(): boolean;
@@ -13,6 +14,8 @@ export interface Chaves {
 }
 
 const NOME_ARQUIVO = 'chaves.bin';
+const NOME_CORROMPIDO = 'chaves.bin.corrompido';
+const ERRO_INDISPONIVEL = 'Criptografia do Windows indisponível';
 
 function textoOuNulo(valor: unknown): string | null {
   return typeof valor === 'string' ? valor : null;
@@ -24,7 +27,16 @@ export function criarCofreChaves(
 ): { obter(): Promise<Chaves>; salvar(p: Partial<Chaves>): Promise<void> } {
   const arquivo = path.join(dir, NOME_ARQUIVO);
 
-  async function obter(): Promise<Chaves> {
+  // Leituras e gravações andam uma de cada vez, na ordem em que foram pedidas. Uma tarefa que
+  // falha rejeita só o seu próprio pedido: a fila segue para as próximas.
+  let fila: Promise<unknown> = Promise.resolve();
+  function naFila<T>(tarefa: () => Promise<T>): Promise<T> {
+    const execucao = fila.then(tarefa);
+    fila = execucao.catch(() => undefined);
+    return execucao;
+  }
+
+  async function ler(): Promise<Chaves> {
     let bytes: Buffer;
     try {
       bytes = await fs.readFile(arquivo);
@@ -32,29 +44,33 @@ export function criarCofreChaves(
       if ((erro as NodeJS.ErrnoException).code === 'ENOENT') return { anthropic: null, soniox: null };
       throw erro;
     }
+    if (!cripto.disponivel()) throw new Error(ERRO_INDISPONIVEL);
+    let dados: Record<string, unknown>;
     try {
-      const dados: unknown = JSON.parse(cripto.descriptografar(bytes));
-      const objeto = typeof dados === 'object' && dados !== null ? (dados as Record<string, unknown>) : {};
-      return { anthropic: textoOuNulo(objeto.anthropic), soniox: textoOuNulo(objeto.soniox) };
+      const lido: unknown = JSON.parse(cripto.descriptografar(bytes));
+      if (typeof lido !== 'object' || lido === null) throw new Error('conteúdo inesperado');
+      dados = lido as Record<string, unknown>;
     } catch {
-      // Arquivo ilegível (corrompido ou criado por outro usuário do Windows): sem chaves guardadas.
-      // Devolver nulos deixa a usuária digitar as chaves de novo, em vez de travar o salvar.
+      // Ilegível (corrompido ou criado por outro usuário do Windows): guarda o arquivo para
+      // recuperação e segue sem chaves, para a usuária poder digitá-las de novo.
+      await fs.rename(arquivo, path.join(dir, NOME_CORROMPIDO));
+      console.warn(`Cofre de chaves ilegível: o arquivo foi guardado como ${NOME_CORROMPIDO}.`);
       return { anthropic: null, soniox: null };
     }
+    return { anthropic: textoOuNulo(dados.anthropic), soniox: textoOuNulo(dados.soniox) };
   }
 
   async function salvar(p: Partial<Chaves>): Promise<void> {
-    if (!cripto.disponivel()) throw new Error('Criptografia do Windows indisponível');
-    const atual = await obter();
-    const novo: Chaves = {
-      anthropic: p.anthropic !== undefined ? p.anthropic : atual.anthropic,
-      soniox: p.soniox !== undefined ? p.soniox : atual.soniox,
-    };
-    const temporario = `${arquivo}.tmp`;
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(temporario, cripto.criptografar(JSON.stringify(novo)));
-    await fs.rename(temporario, arquivo);
+    if (!cripto.disponivel()) throw new Error(ERRO_INDISPONIVEL);
+    await naFila(async () => {
+      const atual = await ler();
+      const novo: Chaves = {
+        anthropic: p.anthropic !== undefined ? p.anthropic : atual.anthropic,
+        soniox: p.soniox !== undefined ? p.soniox : atual.soniox,
+      };
+      await gravarAtomico(arquivo, cripto.criptografar(JSON.stringify(novo)));
+    });
   }
 
-  return { obter, salvar };
+  return { obter: () => naFila(ler), salvar };
 }

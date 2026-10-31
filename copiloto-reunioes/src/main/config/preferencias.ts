@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { Preferencias } from '../../shared/tipos';
 import { ATALHOS_PADRAO } from './atalhos';
+import { gravarAtomico } from './gravar-atomico';
 
 export const PREFERENCIAS_PADRAO: Preferencias = {
   sobreVoce: '',
@@ -38,9 +39,5 @@ export async function lerPreferencias(dir: string): Promise<Preferencias> {
 }
 
 export async function salvarPreferencias(dir: string, p: Preferencias): Promise<void> {
-  const arquivo = path.join(dir, NOME_ARQUIVO);
-  const temporario = `${arquivo}.tmp`;
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(temporario, JSON.stringify(p, null, 2), 'utf8');
-  await fs.rename(temporario, arquivo);
+  await gravarAtomico(path.join(dir, NOME_ARQUIVO), JSON.stringify(p, null, 2));
 }

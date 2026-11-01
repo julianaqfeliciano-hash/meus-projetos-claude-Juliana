@@ -125,6 +125,78 @@ describe('lerDocumento', () => {
     ]);
   });
 
+  describe('PPTX: ordem da apresentação', () => {
+    /** Reescreve o pptx gerado, trocando a ordem dos `<p:sldId>` de presentation.xml (índices da nova ordem). */
+    async function reordenar(caminho: string, ordem: number[]): Promise<void> {
+      const zip = await JSZip.loadAsync(await fs.readFile(caminho));
+      const xml = await zip.file('ppt/presentation.xml')!.async('string');
+      const entradas = xml.match(/<p:sldId\b[^>]*\/>/g)!;
+      const lista = ordem.map((i) => entradas[i]).join('');
+      zip.file('ppt/presentation.xml', xml.replace(/(<p:sldIdLst>)[\s\S]*?(<\/p:sldIdLst>)/, `$1${lista}$2`));
+      await fs.writeFile(caminho, await zip.generateAsync({ type: 'nodebuffer' }));
+    }
+
+    it('rotula pela posição na apresentação, não pelo número do arquivo, e as notas acompanham o slide', async () => {
+      const caminho = await gerarPptx(dir, [{ texto: 'Alfa', notas: 'Nota do alfa' }, { texto: 'Beta' }, { texto: 'Gama' }]);
+      await reordenar(caminho, [1, 0, 2]);
+      const doc = await lerDocumento(caminho);
+      expect(doc.partes).toEqual([
+        { rotulo: 'slide 1', texto: 'Beta' },
+        { rotulo: 'slide 2', texto: 'Alfa\nNotas: Nota do alfa' },
+        { rotulo: 'slide 3', texto: 'Gama' },
+      ]);
+    });
+
+    it('slides vazios ocupam posição mesmo omitidos', async () => {
+      const caminho = await gerarPptx(dir, [{ texto: 'Um' }, { texto: '' }, { texto: 'Três' }]);
+      await reordenar(caminho, [2, 1, 0]);
+      const doc = await lerDocumento(caminho);
+      expect(doc.partes).toEqual([
+        { rotulo: 'slide 1', texto: 'Três' },
+        { rotulo: 'slide 3', texto: 'Um' },
+      ]);
+    });
+
+    it('slide que não está na lista da apresentação é ignorado', async () => {
+      const caminho = await gerarPptx(dir, [{ texto: 'Um' }, { texto: 'Dois' }, { texto: 'Três' }]);
+      await reordenar(caminho, [0, 2]);
+      const doc = await lerDocumento(caminho);
+      expect(doc.partes).toEqual([
+        { rotulo: 'slide 1', texto: 'Um' },
+        { rotulo: 'slide 2', texto: 'Três' },
+      ]);
+    });
+
+    it.each([
+      ['sem presentation.xml', (zip: JSZip) => zip.remove('ppt/presentation.xml')],
+      ['sem presentation.xml.rels', (zip: JSZip) => zip.remove('ppt/_rels/presentation.xml.rels')],
+      [
+        'com r:id que não existe no .rels',
+        (zip: JSZip) => {
+          zip.file('ppt/_rels/presentation.xml.rels', '<Relationships></Relationships>');
+        },
+      ],
+      [
+        'com presentation.xml malformado',
+        (zip: JSZip) => {
+          zip.file('ppt/presentation.xml', '<p:presentation><p:sldIdLst');
+        },
+      ],
+    ])('volta para a ordem numérica dos arquivos %s', async (_nome, quebrar) => {
+      const caminho = await gerarPptx(dir, [{ texto: 'Um' }, { texto: 'Dois' }, { texto: 'Três' }]);
+      const zip = await JSZip.loadAsync(await fs.readFile(caminho));
+      quebrar(zip);
+      await fs.writeFile(caminho, await zip.generateAsync({ type: 'nodebuffer' }));
+      const doc = await lerDocumento(caminho);
+      expect(doc.aviso).toBeNull();
+      expect(doc.partes).toEqual([
+        { rotulo: 'slide 1', texto: 'Um' },
+        { rotulo: 'slide 2', texto: 'Dois' },
+        { rotulo: 'slide 3', texto: 'Três' },
+      ]);
+    });
+  });
+
   it('PPTX: slides vazios são omitidos', async () => {
     const doc = await lerDocumento(await gerarPptx(dir, [{ texto: 'Um' }, { texto: '' }, { texto: 'Três' }]));
     expect(doc.partes.map((p) => p.rotulo)).toEqual(['slide 1', 'slide 3']);

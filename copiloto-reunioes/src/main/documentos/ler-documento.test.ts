@@ -167,6 +167,37 @@ describe('lerDocumento', () => {
       ]);
     });
 
+    describe('apresentação personalizada (custShow)', () => {
+      const CUSTSHOW =
+        '<p:custShowLst><p:custShow name="Resumo" id="0"><p:sldLst><p:sldId r:id="rId4"/><p:sldId r:id="rId2"/></p:sldLst></p:custShow></p:custShowLst>';
+
+      async function comCustShow(caminho: string, semListaDeSlides: boolean): Promise<void> {
+        const zip = await JSZip.loadAsync(await fs.readFile(caminho));
+        let xml = await zip.file('ppt/presentation.xml')!.async('string');
+        if (semListaDeSlides) xml = xml.replace(/<p:sldIdLst>[\s\S]*?<\/p:sldIdLst>/, '');
+        zip.file('ppt/presentation.xml', xml.replace('</p:presentation>', `${CUSTSHOW}</p:presentation>`));
+        await fs.writeFile(caminho, await zip.generateAsync({ type: 'nodebuffer' }));
+      }
+
+      it('as entradas da apresentação personalizada não viram slides extras', async () => {
+        const caminho = await gerarPptx(dir, [{ texto: 'Alfa' }, { texto: 'Beta' }, { texto: 'Gama' }]);
+        await comCustShow(caminho, false);
+        const doc = await lerDocumento(caminho);
+        expect(doc.partes).toEqual([
+          { rotulo: 'slide 1', texto: 'Alfa' },
+          { rotulo: 'slide 2', texto: 'Beta' },
+          { rotulo: 'slide 3', texto: 'Gama' },
+        ]);
+      });
+
+      it('sem a lista de slides, só com a personalizada, volta para a ordem numérica', async () => {
+        const caminho = await gerarPptx(dir, [{ texto: 'Alfa' }, { texto: 'Beta' }, { texto: 'Gama' }]);
+        await comCustShow(caminho, true);
+        const doc = await lerDocumento(caminho);
+        expect(doc.partes.map((p) => p.texto)).toEqual(['Alfa', 'Beta', 'Gama']);
+      });
+    });
+
     it.each([
       ['sem presentation.xml', (zip: JSZip) => zip.remove('ppt/presentation.xml')],
       ['sem presentation.xml.rels', (zip: JSZip) => zip.remove('ppt/_rels/presentation.xml.rels')],

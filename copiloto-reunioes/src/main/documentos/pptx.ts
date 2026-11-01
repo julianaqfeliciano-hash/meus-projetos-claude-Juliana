@@ -43,7 +43,10 @@ async function slidesDaApresentacao(zip: JSZip): Promise<string[] | null> {
     const alvo = tag.match(/\bTarget="([^"]*)"/)?.[1];
     if (id !== undefined && alvo !== undefined) alvos.set(id, alvo);
   }
-  const arquivos = [...apresentacao.matchAll(/<p:sldId\b[^>]*\br:id="([^"]*)"/g)].map(
+  // Só dentro de <p:sldIdLst>: as apresentações personalizadas (<p:custShowLst>) reusam o elemento <p:sldId>.
+  const lista = apresentacao.match(/<p:sldIdLst\b[^>]*>([\s\S]*?)<\/p:sldIdLst>/)?.[1];
+  if (lista === undefined) return null;
+  const arquivos = [...lista.matchAll(/<p:sldId\b[^>]*\br:id="([^"]*)"/g)].map(
     (m) => alvos.get(m[1])?.match(/(?:^|\/)slides\/([^/]+)$/)?.[1],
   );
   const completo = arquivos.length > 0 && arquivos.every((a) => a !== undefined && zip.file(`ppt/slides/${a}`));

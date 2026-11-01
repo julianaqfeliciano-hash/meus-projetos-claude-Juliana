@@ -12,7 +12,8 @@ export const MARCADORES = {
 type ChaveMarcador = keyof typeof MARCADORES;
 const CHAVES = Object.keys(MARCADORES) as ChaveMarcador[];
 
-const CAMPO_PRINCIPAL: Record<TipoCartao, keyof CamposCartao> = {
+/** Campo principal de cada tipo de cartão: recebe o texto que vem sem marcadores. */
+export const CAMPO_PRINCIPAL: Record<TipoCartao, keyof CamposCartao> = {
   'diga-isso': 'digaIsso',
   conceito: 'explicacao',
   resposta: 'resposta',

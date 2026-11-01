@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthError, QuotaError, type SttSessionConfig } from '@soniox/node';
 import {
   CONFIG_SONIOX,
+  TEMPO_MAX_ENCERRAR_MS,
   criarSessaoSoniox,
   fabricaSoniox,
   type CallbacksStt,
@@ -580,6 +581,41 @@ describe('encerrar', () => {
     await vi.advanceTimersByTimeAsync(60_000);
     expect(fabrica).toHaveBeenCalledTimes(1);
     expect(cb.aoStatus.mock.calls).toEqual([['ok']]);
+  });
+
+  it('não espera o finish() para sempre: após o tempo máximo entrega a fala e fecha a sessão', async () => {
+    expect(TEMPO_MAX_ENCERRAR_MS).toBe(5000);
+    const cb = criarCb();
+    const { fabrica, sessoes } = criarFabrica(() => ({ finish: () => new Promise<void>(() => undefined) }));
+    const s = criarSessaoSoniox('outros', cb, fabrica);
+    await s.iniciar();
+    sessoes[0]!.emitir('result', resultado(token('Última frase.')));
+
+    let terminou = false;
+    const encerrando = s.encerrar().then(() => (terminou = true));
+    await vi.advanceTimersByTimeAsync(TEMPO_MAX_ENCERRAR_MS - 1);
+    expect(terminou).toBe(false);
+    expect(cb.aoFalar).not.toHaveBeenCalled();
+    expect(sessoes[0]!.mock.close).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    await encerrando;
+    expect(terminou).toBe(true);
+    expect(cb.aoFalar).toHaveBeenCalledTimes(1);
+    expect(cb.aoFalar).toHaveBeenCalledWith(expect.objectContaining({ texto: 'Última frase.' }));
+    expect(sessoes[0]!.mock.close).toHaveBeenCalledTimes(1);
+
+    // um segundo encerrar() devolve o mesmo resultado, sem entregar de novo
+    await s.encerrar();
+    expect(cb.aoFalar).toHaveBeenCalledTimes(1);
+  });
+
+  it('o finish() que termina a tempo não deixa temporizador pendente', async () => {
+    const { fabrica } = criarFabrica();
+    const s = criarSessaoSoniox('outros', criarCb(), fabrica);
+    await s.iniciar();
+    await s.encerrar();
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('fecha a sessão do SDK ao terminar, mesmo que o finish tenha falhado', async () => {

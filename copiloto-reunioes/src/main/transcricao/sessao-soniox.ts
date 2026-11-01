@@ -39,6 +39,12 @@ export const CONFIG_SONIOX: SttSessionConfig = {
   enable_endpoint_detection: true,
 };
 
+/**
+ * Quanto `encerrar()` espera o `finish()` do SDK. O SDK não tem limite próprio: numa conexão meio
+ * aberta ele ficaria pendente para sempre e a fala final nunca sairia.
+ */
+export const TEMPO_MAX_ENCERRAR_MS = 5000;
+
 /** Erros que reconectar não resolve: chave recusada ou cota esgotada. */
 function motivoSemRetentativa(erro: unknown): 'chave' | 'cota' | null {
   if (erro instanceof AuthError) return 'chave';
@@ -114,21 +120,31 @@ class SessaoSoniox implements SttSession {
       this.temporizador = null;
     }
     const sdk = this.sessao;
-    if (sdk) {
-      try {
-        // O finish() faz o servidor finalizar o que ainda era parcial; esses resultados chegam
-        // pelo evento `result` antes de ele terminar.
-        await sdk.finish();
-      } catch {
-        // Encerrar não depende do finish: a sessão pode já ter caído, ou nem ter conectado ainda.
-      }
-    }
+    if (sdk) await this.aguardarFinish(sdk);
     this.fase = 'encerrada';
     this.sessao = null;
     this.conectado = false;
     if (sdk) this.fechar(sdk);
     const fala = this.acumulador.fimDeFala(Date.now());
     if (fala) this.cb.aoFalar(fala);
+  }
+
+  /** Espera o `finish()` por no máximo `TEMPO_MAX_ENCERRAR_MS`; nunca lança. */
+  private async aguardarFinish(sdk: SessaoSdk): Promise<void> {
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+    const limite = new Promise<void>((resolve) => {
+      temporizador = setTimeout(resolve, TEMPO_MAX_ENCERRAR_MS);
+    });
+    try {
+      // O finish() faz o servidor finalizar o que ainda era parcial; esses resultados chegam
+      // pelo evento `result` antes de ele terminar. Se o limite vencer, o `race` ainda escuta o
+      // finish(), então uma rejeição tardia (o close() que vem a seguir causa uma) não fica solta.
+      await Promise.race([sdk.finish(), limite]);
+    } catch {
+      // Encerrar não depende do finish: a sessão pode já ter caído, ou nem ter conectado ainda.
+    } finally {
+      clearTimeout(temporizador);
+    }
   }
 
   private async conectar(): Promise<void> {

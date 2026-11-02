@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import Anthropic from '@anthropic-ai/sdk';
-import { RecusaIa, TempoEsgotado, classificarErro } from './erros';
+import { RecusaIa, TempoEsgotado, classificarErro, mensagemErroIa } from './erros';
 
 describe('classificarErro', () => {
   it('classifica erros do SDK', () => {
@@ -41,5 +41,28 @@ describe('erros próprios', () => {
     expect(tempo.name).toBe('TempoEsgotado');
     expect(recusa.message).toMatch(/recus/i);
     expect(tempo.message).toMatch(/tempo/i);
+  });
+});
+
+describe('mensagemErroIa', () => {
+  it('traduz cada classe de erro para uma mensagem em português', () => {
+    const chave = 'Chave da Anthropic inválida ou sem permissão — confira nas Configurações.';
+    expect(mensagemErroIa(Object.create(Anthropic.AuthenticationError.prototype))).toBe(chave);
+    expect(mensagemErroIa(Object.create(Anthropic.PermissionDeniedError.prototype))).toBe(chave);
+    expect(mensagemErroIa(Object.create(Anthropic.RateLimitError.prototype))).toBe(
+      'Limite de uso da IA atingido — aguarde um pouco e tente de novo.',
+    );
+    expect(mensagemErroIa(Object.create(Anthropic.APIConnectionError.prototype))).toBe(
+      'Sem conexão com a IA — confira a internet.',
+    );
+    expect(mensagemErroIa(new TempoEsgotado())).toBe('A IA demorou demais — tente de novo.');
+    expect(mensagemErroIa(new RecusaIa())).toBe('A IA não conseguiu responder a este pedido.');
+  });
+
+  it('nunca repassa o texto original (inglês ou JSON) do erro', () => {
+    expect(mensagemErroIa(new Error('400 {"type":"error","error":{"type":"invalid_request_error"}}'))).toBe(
+      'Algo deu errado — tente de novo.',
+    );
+    expect(mensagemErroIa(new SyntaxError('Unexpected end of JSON input'))).toBe('Algo deu errado — tente de novo.');
   });
 });

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron';
 import { CANAIS, type CopilotoApi } from '../shared/ipc';
 
 /** O Electron prefixa o erro de um `invoke` com "Error invoking remote method '…': Error: "; a tela só quer a mensagem. */
@@ -31,6 +31,7 @@ const api: CopilotoApi = {
   documentos: {
     escolher: () => invocar(CANAIS.documentosEscolher),
     ler: (caminhos) => invocar(CANAIS.documentosLer, caminhos),
+    caminhoDoArquivo: (f) => webUtils.getPathForFile(f),
   },
   reuniao: {
     iniciar: (o) => invocar(CANAIS.reuniaoIniciar, o),

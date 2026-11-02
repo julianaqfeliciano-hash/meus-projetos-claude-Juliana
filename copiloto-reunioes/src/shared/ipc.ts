@@ -5,11 +5,15 @@ export interface CopilotoApi {
     obter(): Promise<{
       preferencias: T.Preferencias; temChaves: { anthropic: boolean; soniox: boolean };
       statusChaves: { anthropic: T.ResultadoChave | null; soniox: T.ResultadoChave | null }; // null = sem chave ou ainda verificando
+      avisos: T.Aviso[]; // avisos do app (atalho recusado, Windows antigo), mostrados também fora da reunião
     }>;
     salvar(p: T.Preferencias): Promise<Record<T.AcaoAtalho, string | null>>; // erros de validação/registro por ação
     salvarChaves(c: { anthropic?: string; soniox?: string }): Promise<{ anthropic?: T.ResultadoChave; soniox?: T.ResultadoChave }>;
   };
-  documentos: { escolher(): Promise<string[]>; ler(caminhos: string[]): Promise<DocumentosLidos> };
+  documentos: {
+    escolher(): Promise<string[]>; ler(caminhos: string[]): Promise<DocumentosLidos>;
+    caminhoDoArquivo(f: File): string; // caminho no disco de um arquivo arrastado para a janela
+  };
   reuniao: {
     iniciar(o: { caminhos: string[]; contexto: string; idioma: T.IdiomaSugestao; modo: 'audio' | 'ensaio' }): Promise<void>;
     falaEnsaio(quem: T.Quem, texto: string): void;

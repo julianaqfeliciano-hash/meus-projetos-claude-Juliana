@@ -28,3 +28,20 @@ export function classificarErro(e: unknown): ClasseErro {
   if (e instanceof TempoEsgotado) return 'tempo';
   return 'outro';
 }
+
+const MENSAGEM_ERRO_CHAVE = 'Chave da Anthropic inválida ou sem permissão — confira nas Configurações.';
+
+const MENSAGEM_ERRO: Record<ClasseErro, string> = {
+  chave: MENSAGEM_ERRO_CHAVE,
+  permissao: MENSAGEM_ERRO_CHAVE,
+  limite: 'Limite de uso da IA atingido — aguarde um pouco e tente de novo.',
+  rede: 'Sem conexão com a IA — confira a internet.',
+  tempo: 'A IA demorou demais — tente de novo.',
+  recusa: 'A IA não conseguiu responder a este pedido.',
+  outro: 'Algo deu errado — tente de novo.',
+};
+
+/** A mensagem que a tela mostra para um erro da IA. Nunca repassa o texto do erro original (inglês ou JSON). */
+export function mensagemErroIa(e: unknown): string {
+  return MENSAGEM_ERRO[classificarErro(e)];
+}

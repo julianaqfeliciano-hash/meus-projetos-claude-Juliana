@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, shell } from 'electron';
+import { arquivoDaPagina, ehPaginaDesteApp, type Pagina } from './paginas';
 
 const TITULO = 'Copiloto de Reuniões';
 
@@ -11,29 +12,18 @@ export const PREFERENCIAS_WEB_SEGURAS = {
   nodeIntegration: false,
 } as const;
 
-export function carregarPagina(janela: BrowserWindow, pagina: 'index' | 'painel'): void {
+export function carregarPagina(janela: BrowserWindow, pagina: Pagina): void {
   const servidorDev = process.env['ELECTRON_RENDERER_URL'];
   const carregamento = servidorDev
     ? janela.loadURL(`${servidorDev}/${pagina}.html`)
-    : janela.loadFile(join(__dirname, `../renderer/${pagina}.html`));
+    : janela.loadFile(arquivoDaPagina(pagina));
   carregamento.catch((erro: unknown) => console.error(`Não consegui carregar a página ${pagina}:`, erro));
 }
 
-/** Endereço fora do app (as páginas do app são arquivos locais ou, em desenvolvimento, o servidor do Vite). */
-function ehExterno(url: string): boolean {
-  try {
-    const destino = new URL(url);
-    const servidorDev = process.env['ELECTRON_RENDERER_URL'];
-    if (servidorDev && destino.origin === new URL(servidorDev).origin) return false;
-    return destino.protocol !== 'file:';
-  } catch {
-    return true;
-  }
-}
-
 /**
- * Links externos (ex.: os painéis da Anthropic e da Soniox nas Configurações) abrem no navegador. Sem isso o
- * Electron os abriria numa janela do app, com o preload e a API do Copiloto à disposição do site.
+ * As janelas só navegam para as páginas do app. Qualquer outro destino é recusado: um site, ou um arquivo local
+ * (soltar um documento na janela navegaria até ele), ganharia o preload, a API do Copiloto e a permissão de
+ * captura. Links `https` (ex.: os painéis da Anthropic e da Soniox nas Configurações) abrem no navegador.
  */
 export function protegerNavegacao(janela: BrowserWindow): void {
   const abrirNoNavegador = (url: string): void => {
@@ -46,7 +36,7 @@ export function protegerNavegacao(janela: BrowserWindow): void {
     return { action: 'deny' };
   });
   janela.webContents.on('will-navigate', (evento, url) => {
-    if (!ehExterno(url)) return;
+    if (ehPaginaDesteApp(url)) return;
     evento.preventDefault();
     abrirNoNavegador(url);
   });

@@ -1,9 +1,7 @@
-import { release } from 'node:os';
 import { BrowserWindow, screen, type Rectangle } from 'electron';
 import { CANAIS } from '../../shared/ipc';
-import type { Preferencias, TipoAviso } from '../../shared/tipos';
+import type { Preferencias } from '../../shared/tipos';
 import { carregarPagina, PREFERENCIAS_WEB_SEGURAS, protegerNavegacao } from './janela-principal';
-import { suportaExclusaoCaptura } from './versao-windows';
 
 type LimitesPainel = NonNullable<Preferencias['painel']>;
 
@@ -13,7 +11,6 @@ export interface OpcoesPainel {
   aoMudarLimites(l: LimitesPainel): void;
   /** A página do painel terminou de carregar e já pode receber o estado. */
   aoCarregar(): void;
-  avisar(tipo: TipoAviso): void;
 }
 
 export interface ControlePainel {
@@ -92,8 +89,6 @@ export function criarControlePainel(o: OpcoesPainel): ControlePainel {
     });
     nova.webContents.on('did-finish-load', () => o.aoCarregar());
     carregarPagina(nova, 'painel');
-
-    if (process.platform === 'win32' && !suportaExclusaoCaptura(release())) o.avisar('windows-antigo');
     return nova;
   }
 

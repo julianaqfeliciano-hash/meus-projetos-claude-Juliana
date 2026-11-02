@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { release } from 'node:os';
 import Anthropic from '@anthropic-ai/sdk';
 import { SonioxNodeClient } from '@soniox/node';
 import { dialog, globalShortcut, ipcMain, type BrowserWindow, type OpenDialogOptions } from 'electron';
@@ -7,36 +8,47 @@ import { mensagemAviso, TEXTO_AVISO } from '../shared/textos';
 import {
   LIMITE_TOKENS_DOCUMENTOS,
   type AcaoAtalho,
-  type AvaliacaoResposta,
   type Aviso,
-  type ConfigTreino,
   type ContextoReuniao,
-  type IdiomaSugestao,
   type InstantaneoReuniao,
   type ItemHistoricoReuniao,
   type ItemHistoricoTreino,
   type Preferencias,
-  type Quem,
   type ResultadoChave,
-  type StatusConexao,
   type TipoAviso,
 } from '../shared/tipos';
 import { registrarAtalhos } from './atalhos-globais';
-import { ATALHOS_PADRAO, normalizarAtalho, validarAtalhos } from './config/atalhos';
+import { ATALHOS_PADRAO, validarAtalhos } from './config/atalhos';
 import type { Chaves } from './config/chaves';
+import { criarLojaPreferencias } from './config/loja-preferencias';
 import { salvarPreferencias } from './config/preferencias';
 import { lerDocumento } from './documentos/ler-documento';
 import type { Historico } from './historico/historico';
 import { verificarChaveAnthropic, verificarChaveSoniox } from './ia/chaves-verificacao';
 import { criarDetector } from './ia/detector';
+import { mensagemErroIa } from './ia/erros';
 import { criarExplicador } from './ia/explicador';
 import { montarPrefixo } from './ia/prefixo';
 import { criarResumidor } from './ia/resumo';
 import { contarTokensDocumentos } from './ia/tokens';
-import { criarTreinador, type RespostaTreino } from './ia/treinador';
+import { criarTreinador } from './ia/treinador';
+import {
+  ehListaDeTextos,
+  ehQuem,
+  ehTexto,
+  exigir,
+  lerChavesDaTela,
+  lerConfigTreino,
+  lerPedidoReuniao,
+  lerPreferenciasDaTela,
+  lerRespostas,
+  paraBytes,
+} from './ipc/entrada';
 import { criarControlePainel } from './janelas/painel';
+import { suportaExclusaoCaptura } from './janelas/versao-windows';
 import { criarSessaoReuniao, type SessaoReuniao } from './reuniao/sessao-reuniao';
-import { criarSessaoSoniox, fabricaSoniox, type SttSession } from './transcricao/sessao-soniox';
+import { criarSessaoSoniox, fabricaSoniox } from './transcricao/sessao-soniox';
+import { criarControleDitado } from './treino/ditado';
 
 export interface ContextoIpc {
   /** `app.getPath('userData')`. */
@@ -48,7 +60,7 @@ export interface ContextoIpc {
   principal(): BrowserWindow | null;
 }
 
-/** O que o resto do processo principal (janela principal) usa da reunião. */
+/** O que a janela principal usa da reunião para confirmar a saída. */
 export interface ControleReuniao {
   situacao(): 'ativa' | 'encerrando' | null;
   encerrar(): Promise<ItemHistoricoReuniao | null>;
@@ -59,7 +71,6 @@ type Provedor = keyof Chaves;
 const PROVEDORES: Provedor[] = ['anthropic', 'soniox'];
 const ACOES = Object.keys(ATALHOS_PADRAO) as AcaoAtalho[];
 
-const ERRO_PEDIDO = 'Pedido inválido.';
 const ERRO_CHAVES = 'Configure as chaves nas Configurações';
 const ERRO_REUNIAO_EM_ANDAMENTO = 'Já existe uma reunião em andamento.';
 const ERRO_LIMITE_DOCUMENTOS =
@@ -68,7 +79,8 @@ const ERRO_SALVAR_REUNIAO = 'Não consegui salvar a reunião no Histórico.';
 const ERRO_SEM_PERGUNTAS = 'Não consegui gerar as perguntas — tente de novo.';
 const ERRO_SEM_RESPOSTAS = 'Responda ao menos uma pergunta.';
 const ERRO_DITADO_EM_REUNIAO = 'Encerre a reunião antes de responder falando.';
-const ERRO_CONEXAO_DITADO = 'Não consegui conectar à transcrição — confira a internet e a chave da Soniox.';
+const ERRO_SALVAR_NO_DISCO = 'Não foi possível salvar no computador.';
+const ERRO_APAGAR_NO_DISCO = 'Não foi possível apagar no computador.';
 const ATALHO_RECUSADO = 'Já usado por outro programa';
 const TAMANHO_VAGA_RESUMO = 200;
 
@@ -77,146 +89,34 @@ const FILTRO_DOCUMENTOS = {
   extensions: ['pdf', 'docx', 'pptx', 'xlsx', 'txt', 'md', 'doc', 'xls', 'ppt'],
 };
 
-// ── Validação do que chega dos renderers (entrada não confiável) ─────────────────────────────────────
-
-function exigir(condicao: boolean): asserts condicao {
-  if (!condicao) throw new Error(ERRO_PEDIDO);
-}
-const ehTexto = (v: unknown): v is string => typeof v === 'string';
-const ehListaDeTextos = (v: unknown): v is string[] => Array.isArray(v) && v.every(ehTexto);
-const ehObjeto = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const ehQuem = (v: unknown): v is Quem => v === 'voce' || v === 'outros';
-function umDe<T extends string | number>(v: unknown, opcoes: readonly T[]): v is T {
-  return opcoes.includes(v as T);
-}
-
-function lerAtalhos(v: unknown): Record<AcaoAtalho, string> {
-  exigir(ehObjeto(v));
-  const atalhos = {} as Record<AcaoAtalho, string>;
-  for (const acao of ACOES) {
-    const atalho = v[acao];
-    exigir(ehTexto(atalho));
-    atalhos[acao] = normalizarAtalho(atalho);
-  }
-  return atalhos;
-}
-
-/** As preferências que a tela de Configurações edita. `painel` e `ultimosArquivos` são do processo principal. */
-function lerPreferenciasDaTela(v: unknown): Omit<Preferencias, 'painel' | 'ultimosArquivos'> {
-  exigir(
-    ehObjeto(v) &&
-      ehTexto(v.sobreVoce) &&
-      (v.microfoneId === null || ehTexto(v.microfoneId)) &&
-      umDe(v.tamanhoLetra, ['normal', 'grande'] as const) &&
-      typeof v.opacidadePainel === 'number' &&
-      v.opacidadePainel >= 0.6 &&
-      v.opacidadePainel <= 1 &&
-      typeof v.invisivelNoCompartilhamento === 'boolean',
-  );
-  return {
-    sobreVoce: v.sobreVoce,
-    microfoneId: v.microfoneId,
-    atalhos: lerAtalhos(v.atalhos),
-    tamanhoLetra: v.tamanhoLetra,
-    opacidadePainel: v.opacidadePainel,
-    invisivelNoCompartilhamento: v.invisivelNoCompartilhamento,
-  };
-}
-
-function lerPedidoReuniao(v: unknown): { caminhos: string[]; contexto: string; idioma: IdiomaSugestao; modo: 'audio' | 'ensaio' } {
-  exigir(
-    ehObjeto(v) &&
-      ehListaDeTextos(v.caminhos) &&
-      ehTexto(v.contexto) &&
-      umDe(v.idioma, ['auto', 'pt', 'en'] as const) &&
-      umDe(v.modo, ['audio', 'ensaio'] as const),
-  );
-  return { caminhos: v.caminhos, contexto: v.contexto, idioma: v.idioma, modo: v.modo };
-}
-
-function lerConfigTreino(v: unknown): ConfigTreino {
-  exigir(
-    ehObjeto(v) &&
-      ehTexto(v.vaga) &&
-      ehTexto(v.curriculo) &&
-      umDe(v.idioma, ['pt', 'en'] as const) &&
-      umDe(v.tipo, ['comportamental', 'tecnica', 'mista'] as const) &&
-      umDe(v.quantidade, [5, 8, 10] as const),
-  );
-  return { vaga: v.vaga, curriculo: v.curriculo, idioma: v.idioma, tipo: v.tipo, quantidade: v.quantidade };
-}
-
-function lerAvaliacao(v: unknown): AvaliacaoResposta {
-  exigir(
-    ehObjeto(v) &&
-      ehListaDeTextos(v.foiBem) &&
-      ehListaDeTextos(v.faltou) &&
-      ehTexto(v.respostaMelhorada) &&
-      ehListaDeTextos(v.dicasIngles),
-  );
-  return { foiBem: v.foiBem, faltou: v.faltou, respostaMelhorada: v.respostaMelhorada, dicasIngles: v.dicasIngles };
-}
-
-function lerRespostas(v: unknown): RespostaTreino[] {
-  exigir(Array.isArray(v));
-  return v.map((r: unknown) => {
-    exigir(ehObjeto(r) && ehTexto(r.pergunta) && ehTexto(r.resposta));
-    return { pergunta: r.pergunta, resposta: r.resposta, avaliacao: lerAvaliacao(r.avaliacao) };
-  });
-}
-
-/** O PCM chega como ArrayBuffer; uma visão (Uint8Array, Buffer) também serve. */
-function paraBytes(pcm: unknown): Uint8Array | null {
-  if (pcm instanceof ArrayBuffer) return new Uint8Array(pcm);
-  if (ArrayBuffer.isView(pcm)) return new Uint8Array(pcm.buffer, pcm.byteOffset, pcm.byteLength);
-  return null;
-}
-
-// ── Preferências: uma gravação de cada vez ──────────────────────────────────────────────────────────
-
 /**
- * `salvarPreferencias` grava o arquivo inteiro e a última gravação a terminar vence. Por isso toda mudança passa
- * por esta fila: cada uma parte do que a anterior gravou, e a memória só muda depois de gravar.
+ * Roda `acao` e, se falhar, troca o erro pela mensagem em português de `mensagem` (o original fica no log). Assim
+ * nenhum texto do SDK ou do sistema de arquivos, em inglês ou JSON, chega à tela.
  */
-function criarLojaPreferencias(dir: string, iniciais: Preferencias) {
-  let atuais = iniciais;
-  let fila: Promise<unknown> = Promise.resolve();
-  return {
-    obter: (): Preferencias => atuais,
-    atualizar(mudar: (p: Preferencias) => Preferencias): Promise<Preferencias> {
-      const execucao = fila.then(async () => {
-        const novas = mudar(atuais);
-        await salvarPreferencias(dir, novas);
-        atuais = novas;
-        return novas;
-      });
-      fila = execucao.catch(() => undefined);
-      return execucao;
-    },
-  };
+async function traduzindoErro<T>(acao: () => Promise<T>, mensagem: (erro: unknown) => string): Promise<T> {
+  try {
+    return await acao();
+  } catch (erro) {
+    console.warn('Falha num pedido da tela:', erro);
+    throw new Error(mensagem(erro), { cause: erro });
+  }
 }
-
-// ── Ligação ─────────────────────────────────────────────────────────────────────────────────────────
+const naIa = <T>(acao: () => Promise<T>): Promise<T> => traduzindoErro(acao, mensagemErroIa);
+const noDisco = <T>(acao: () => Promise<T>, mensagem: string): Promise<T> => traduzindoErro(acao, () => mensagem);
 
 /**
  * Registra os handlers IPC e os atalhos globais e começa a verificação das chaves salvas (§9). Chamar uma vez,
  * no `app.whenReady`.
  */
 export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
-  const loja = criarLojaPreferencias(ctx.dir, ctx.preferencias);
+  const loja = criarLojaPreferencias(ctx.preferencias, (p) => salvarPreferencias(ctx.dir, p));
 
-  // Avisos do app (Windows antigo, atalho recusado), mostrados junto com os da reunião.
+  // Avisos do app (Windows antigo, atalho recusado): vão em `config.obter` e junto com os da reunião.
   const avisosApp = new Map<TipoAviso, Aviso>();
 
   let sessao: SessaoReuniao | null = null;
   let iniciando = false;
   let encerramento: Promise<ItemHistoricoReuniao | null> | null = null;
-
-  interface Ditado {
-    stt: SttSession;
-    falas: string[];
-  }
-  let ditado: Ditado | null = null;
 
   const statusChaves: Record<Provedor, ResultadoChave | null> = { anthropic: null, soniox: null };
   // Uma verificação só grava o resultado se nenhuma mais nova (de `salvarChaves`) passou na frente.
@@ -233,10 +133,15 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
       painel.enviar(CANAIS.painelPreferencias, loja.obter());
       if (sessao) painel.enviar(CANAIS.reuniaoInstantaneo, comAvisos(sessao.instantaneo()));
     },
-    avisar,
   });
 
-  // ── Envio às janelas ──
+  const ditado = criarControleDitado({
+    criarStt: (chave, cb) => criarSessaoSoniox('voce', cb, fabricaSoniox(chave)),
+    comandarCaptura,
+    enviar: (texto) => enviarPrincipal(CANAIS.treinoDitado, texto),
+  });
+
+  // ── Envio às janelas e avisos do app ──
 
   function enviarPrincipal(canal: string, ...args: unknown[]): void {
     const janela = ctx.principal();
@@ -301,18 +206,12 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
       preferencias: loja.obter(),
       temChaves: { anthropic: Boolean(chaves.anthropic), soniox: Boolean(chaves.soniox) },
       statusChaves: { ...statusChaves },
+      avisos: [...avisosApp.values()],
     };
   }
 
   async function salvarChaves(c: unknown): Promise<Partial<Record<Provedor, ResultadoChave>>> {
-    exigir(ehObjeto(c));
-    const pedidas: Partial<Chaves> = {};
-    for (const provedor of PROVEDORES) {
-      const chave = c[provedor];
-      if (chave === undefined) continue;
-      exigir(ehTexto(chave));
-      if (chave.trim() !== '') pedidas[provedor] = chave.trim();
-    }
+    const pedidas = lerChavesDaTela(c);
     const resultados: Partial<Record<Provedor, ResultadoChave>> = {};
     await Promise.all(
       PROVEDORES.map(async (provedor) => {
@@ -325,7 +224,7 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
     if (validas.length > 0) {
       const gravar: Partial<Chaves> = {};
       for (const provedor of validas) gravar[provedor] = pedidas[provedor];
-      await ctx.cofre.salvar(gravar);
+      await noDisco(() => ctx.cofre.salvar(gravar), ERRO_SALVAR_NO_DISCO);
       for (const provedor of validas) {
         versaoStatus[provedor] += 1;
         statusChaves[provedor] = 'ok';
@@ -334,7 +233,7 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
     return resultados;
   }
 
-  // ── Atalhos ──
+  // ── Atalhos e preferências ──
 
   /** A sessão que aceita ações: existe e não está encerrando. */
   function sessaoAtiva(): SessaoReuniao | null {
@@ -369,11 +268,11 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
     const erros = validarAtalhos(daTela.atalhos);
     if (ACOES.some((acao) => erros[acao] !== null)) return erros;
 
-    const salvas = await loja.atualizar((atuais) => ({
-      ...daTela,
-      painel: atuais.painel,
-      ultimosArquivos: atuais.ultimosArquivos,
-    }));
+    const salvas = await noDisco(
+      () =>
+        loja.atualizar((atuais) => ({ ...daTela, painel: atuais.painel, ultimosArquivos: atuais.ultimosArquivos })),
+      ERRO_SALVAR_NO_DISCO,
+    );
     painel.aplicarPreferencias(salvas);
     const aceitos = aplicarAtalhos(salvas.atalhos);
     const resultado = {} as Record<AcaoAtalho, string | null>;
@@ -386,6 +285,11 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   function escolherArquivos(opcoes: OpenDialogOptions) {
     const janela = ctx.principal();
     return janela ? dialog.showOpenDialog(janela, opcoes) : dialog.showOpenDialog(opcoes);
+  }
+
+  async function escolherDocumentos(): Promise<string[]> {
+    const escolha = await escolherArquivos({ properties: ['openFile', 'multiSelections'], filters: [FILTRO_DOCUMENTOS] });
+    return escolha.canceled ? [] : escolha.filePaths;
   }
 
   async function lerDocumentos(caminhos: unknown): Promise<DocumentosLidos> {
@@ -436,8 +340,8 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
         { modo: pedido.modo, contexto },
       );
 
-      // A reunião usa o microfone: um ditado do treino que tenha ficado aberto é encerrado.
-      soltarDitado();
+      // A reunião usa o microfone: um ditado do treino que tenha ficado aberto é fechado.
+      ditado.descartar();
       sessao = nova;
       try {
         const inicio = nova.iniciar();
@@ -467,7 +371,7 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
       .catch((erro: unknown) => {
         // A transcrição já foi apagada da memória; só resta avisar.
         console.warn('Falha ao encerrar a reunião:', erro);
-        throw new Error(ERRO_SALVAR_REUNIAO);
+        throw new Error(ERRO_SALVAR_REUNIAO, { cause: erro });
       })
       .finally(() => {
         encerramento = null;
@@ -501,7 +405,9 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   }
 
   async function gerarPerguntas(cfg: unknown) {
-    const perguntas = await (await treinador()).gerarPerguntas(lerConfigTreino(cfg));
+    const config = lerConfigTreino(cfg);
+    const coach = await treinador();
+    const perguntas = await naIa(() => coach.gerarPerguntas(config));
     if (perguntas.length === 0) throw new Error(ERRO_SEM_PERGUNTAS);
     return perguntas;
   }
@@ -509,14 +415,16 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   async function avaliarResposta(cfg: unknown, pergunta: unknown, resposta: unknown) {
     const config = lerConfigTreino(cfg);
     exigir(ehTexto(pergunta) && ehTexto(resposta));
-    return (await treinador()).avaliar(config, pergunta, resposta);
+    const coach = await treinador();
+    return naIa(() => coach.avaliar(config, pergunta, resposta));
   }
 
   async function finalizarTreino(cfg: unknown, respostas: unknown): Promise<ItemHistoricoTreino> {
     const config = lerConfigTreino(cfg);
     const lidas = lerRespostas(respostas);
     if (lidas.length === 0) throw new Error(ERRO_SEM_RESPOSTAS);
-    const relatorio = await (await treinador()).relatorio(config, lidas);
+    const coach = await treinador();
+    const relatorio = await naIa(() => coach.relatorio(config, lidas));
     const item: ItemHistoricoTreino = {
       id: randomUUID(),
       tipo: 'treino',
@@ -527,73 +435,16 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
       perguntas: lidas.map((r) => r.pergunta),
       relatorio,
     };
-    await ctx.historico.salvar(item);
+    await noDisco(() => ctx.historico.salvar(item), ERRO_SALVAR_NO_DISCO);
     return item;
-  }
-
-  /** Tira o ditado em andamento de uso (para a captura e fecha a transcrição em segundo plano). */
-  function soltarDitado(): Ditado | null {
-    const atual = ditado;
-    if (!atual) return null;
-    ditado = null;
-    comandarCaptura({ acao: 'parar' });
-    atual.stt.encerrar().catch((erro: unknown) => console.warn('Falha ao encerrar o ditado:', erro));
-    return atual;
   }
 
   async function iniciarDitado(): Promise<void> {
     const { soniox } = await ctx.cofre.obter();
     if (!soniox) throw new Error(ERRO_CHAVES);
-    // O treino nunca usa o som do computador, e o microfone não pode servir a reunião e o ditado ao mesmo tempo.
+    // O treino nunca usa o som do computador, e o microfone não serve a reunião e o ditado ao mesmo tempo.
     if (sessao || iniciando) throw new Error(ERRO_DITADO_EM_REUNIAO);
-    soltarDitado();
-
-    const falas: string[] = [];
-    let parcial = '';
-    const conexao: { status: StatusConexao | null; motivo?: 'chave' | 'cota' } = { status: null };
-    const mostrar = (): void =>
-      enviarPrincipal(CANAIS.treinoDitado, [...falas, parcial].filter((t) => t !== '').join(' '));
-    const stt = criarSessaoSoniox(
-      'voce',
-      {
-        aoFalar: (f) => {
-          falas.push(f.texto);
-          parcial = '';
-          mostrar();
-        },
-        aoParcial: (texto) => {
-          parcial = texto;
-          mostrar();
-        },
-        aoFimDeFala: () => undefined,
-        aoStatus: (status, motivo) => {
-          conexao.status = status;
-          conexao.motivo = motivo;
-        },
-      },
-      fabricaSoniox(soniox),
-    );
-    const atual: Ditado = { stt, falas };
-    ditado = atual;
-
-    await stt.iniciar();
-    if (ditado !== atual) return; // parado (ou trocado) enquanto conectava
-    if (conexao.status !== 'ok') {
-      ditado = null;
-      await stt.encerrar();
-      throw new Error(conexao.motivo ? TEXTO_AVISO[conexao.motivo] : ERRO_CONEXAO_DITADO);
-    }
-    comandarCaptura({ acao: 'iniciar', quem: ['voce'] });
-  }
-
-  async function pararDitado(): Promise<string> {
-    const atual = ditado;
-    ditado = null;
-    comandarCaptura({ acao: 'parar' });
-    if (!atual) return '';
-    // A fala final de cada trecho chega durante o encerramento.
-    await atual.stt.encerrar();
-    return atual.falas.join(' ');
+    await ditado.iniciar(soniox);
   }
 
   // ── Handlers ──
@@ -609,10 +460,7 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   tratar(CANAIS.configSalvar, salvarConfig);
   tratar(CANAIS.configSalvarChaves, salvarChaves);
 
-  tratar(CANAIS.documentosEscolher, async () => {
-    const escolha = await escolherArquivos({ properties: ['openFile', 'multiSelections'], filters: [FILTRO_DOCUMENTOS] });
-    return escolha.canceled ? [] : escolha.filePaths;
-  });
+  tratar(CANAIS.documentosEscolher, escolherDocumentos);
   tratar(CANAIS.documentosLer, lerDocumentos);
 
   tratar(CANAIS.reuniaoIniciar, iniciarReuniao);
@@ -631,8 +479,8 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   ouvir(CANAIS.audioEnviar, (quem, pcm) => {
     const bytes = paraBytes(pcm);
     if (!ehQuem(quem) || !bytes) return;
-    if (ditado) {
-      if (quem === 'voce') ditado.stt.enviarAudio(bytes);
+    if (ditado.ativo()) {
+      if (quem === 'voce') ditado.enviarAudio(bytes);
       return;
     }
     sessao?.receberAudio(quem, bytes);
@@ -650,7 +498,7 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   });
   tratar(CANAIS.historicoApagar, (id) => {
     exigir(ehTexto(id));
-    return ctx.historico.apagar(id);
+    return noDisco(() => ctx.historico.apagar(id), ERRO_APAGAR_NO_DISCO);
   });
 
   tratar(CANAIS.treinoLerArquivo, lerArquivoTreino);
@@ -658,10 +506,11 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   tratar(CANAIS.treinoAvaliar, avaliarResposta);
   tratar(CANAIS.treinoFinalizar, finalizarTreino);
   tratar(CANAIS.treinoDitadoIniciar, iniciarDitado);
-  tratar(CANAIS.treinoDitadoParar, pararDitado);
+  tratar(CANAIS.treinoDitadoParar, () => ditado.parar());
 
   // ── Abertura ──
 
+  if (process.platform === 'win32' && !suportaExclusaoCaptura(release())) avisar('windows-antigo');
   aplicarAtalhos(loja.obter().atalhos);
   ctx.cofre
     .obter()

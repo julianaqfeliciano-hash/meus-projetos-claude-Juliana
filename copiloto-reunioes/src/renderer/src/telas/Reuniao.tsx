@@ -80,11 +80,22 @@ interface Props {
   instantaneo: InstantaneoReuniao | null;
   /** Ids dos avisos que a janela já mostra no topo, para não repetir aqui. */
   avisosJaMostrados: string[];
+  /** A captura de áudio parou ou não abriu: a reunião segue "ouvindo", mas sem áudio. */
+  capturaFalhou: boolean;
+  aoTentarCapturaDeNovo: () => void;
   aoVoltar: () => void;
   aoVerHistorico: () => void;
 }
 
-export function Reuniao({ modo, instantaneo, avisosJaMostrados, aoVoltar, aoVerHistorico }: Props) {
+export function Reuniao({
+  modo,
+  instantaneo,
+  avisosJaMostrados,
+  capturaFalhou,
+  aoTentarCapturaDeNovo,
+  aoVoltar,
+  aoVerHistorico,
+}: Props) {
   const [encerrando, setEncerrando] = useState(false);
   const [fim, setFim] = useState<{ item: ItemHistoricoReuniao | null; erro: string | null } | null>(null);
   const [fala, setFala] = useState('');
@@ -145,7 +156,8 @@ export function Reuniao({ modo, instantaneo, avisosJaMostrados, aoVoltar, aoVerH
 
   const textoDoEstado =
     modo === 'ensaio' && estado === 'ouvindo' && !encerrando ? 'Em andamento' : TEXTO_ESTADO[encerrando ? 'encerrando' : estado];
-  const avisos = (instantaneo?.avisos ?? []).filter((a) => !avisosJaMostrados.includes(a.id));
+  // O aviso 'sem-captura' é para o painel; aqui a falha tem o seu lugar fixo, com o botão de tentar de novo.
+  const avisos = (instantaneo?.avisos ?? []).filter((a) => a.tipo !== 'sem-captura' && !avisosJaMostrados.includes(a.id));
   const bloqueada = encerrando || estado === 'encerrando';
   const cartoes = instantaneo?.cartoes ?? [];
 
@@ -163,6 +175,14 @@ export function Reuniao({ modo, instantaneo, avisosJaMostrados, aoVoltar, aoVerH
               </span>
             )}
           </p>
+          {modo === 'audio' && capturaFalhou && (
+            <p role="alert" className="mt-1 flex flex-wrap items-center gap-3 font-medium text-red-700">
+              <span>Sem captura de áudio</span>
+              <button type="button" className="underline" onClick={aoTentarCapturaDeNovo}>
+                Tentar de novo
+              </button>
+            </p>
+          )}
         </div>
         <div className="flex gap-3">
           <button

@@ -23,6 +23,7 @@ export function exigir(condicao: boolean): asserts condicao {
   if (!condicao) throw new Error(ERRO_PEDIDO);
 }
 export const ehTexto = (v: unknown): v is string => typeof v === 'string';
+export const ehTextoOuNulo = (v: unknown): v is string | null => v === null || ehTexto(v);
 export const ehListaDeTextos = (v: unknown): v is string[] => Array.isArray(v) && v.every(ehTexto);
 export const ehQuem = (v: unknown): v is Quem => v === 'voce' || v === 'outros';
 const ehObjeto = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

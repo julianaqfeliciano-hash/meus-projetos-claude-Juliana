@@ -4,7 +4,7 @@ import type { CopilotoApi } from '../../shared/ipc';
 import { TEXTO_AVISO } from '../../shared/textos';
 import type { InstantaneoReuniao, Quem } from '../../shared/tipos';
 import { copiloto, mensagemDeErro } from './api';
-import { iniciarCaptura } from './audio/captura-audio';
+import { descartarSomPreparado, iniciarCaptura, prepararSomDoComputador } from './audio/captura-audio';
 import { Configuracoes } from './telas/Configuracoes';
 import { Historico } from './telas/Historico';
 import { NovaReuniao, type PedidoReuniao } from './telas/NovaReuniao';
@@ -81,18 +81,22 @@ function useConfig(aoPrimeiraConsulta: (c: Config) => void): {
   return { config, erro, reconsultar: () => setRodada((r) => r + 1) };
 }
 
+/** Em que pé está a captura de áudio. `falhou` guarda o motivo e fica até a usuária tentar de novo ou a captura parar. */
+type EstadoCaptura = { estado: 'parada' | 'abrindo' | 'ligada' } | { estado: 'falhou'; mensagem: string };
+const CAPTURA_PARADA: EstadoCaptura = { estado: 'parada' };
+
 /**
- * Liga e desliga a captura de áudio quando o processo principal manda (`aoComandoCaptura`). Devolve o último erro de
- * captura, para o aviso no topo, e `tentarDeNovo`, que repete o último pedido: o clique da usuária também dá ao
- * navegador a "ação do usuário" que o `getDisplayMedia` pode exigir e que um comando do processo principal não traz.
- * Um `parar` que chega enquanto a captura ainda abre desfaz a abertura.
+ * Liga e desliga a captura de áudio quando o processo principal manda (`aoComandoCaptura`) e informa o estado dela.
+ * `tentarDeNovo` repete o último pedido: o clique da usuária também dá ao navegador a "ação do usuário" que o
+ * `getDisplayMedia` exige e que um comando do processo principal não traz. Um `parar` que chega enquanto a captura
+ * ainda abre desfaz a abertura.
  */
 function useCapturaDeAudio(microfoneId: string | null): {
-  erro: string | null;
+  captura: EstadoCaptura;
   limpar: () => void;
   tentarDeNovo: () => void;
 } {
-  const [erro, setErro] = useState<string | null>(null);
+  const [captura, setCaptura] = useState<EstadoCaptura>(CAPTURA_PARADA);
   const microfone = useRef(microfoneId);
   useEffect(() => {
     microfone.current = microfoneId;
@@ -110,18 +114,20 @@ function useCapturaDeAudio(microfoneId: string | null): {
     };
     const iniciar = (quem: Quem[]) => {
       pararTudo();
-      setErro(null);
       pedido = quem;
+      setCaptura({ estado: 'abrindo' });
       const minha = geracao;
-      iniciarCaptura(quem, microfone.current).then(
-        (p) => {
-          if (geracao === minha) parar = p;
-          else p();
-        },
-        (e: unknown) => {
-          if (geracao === minha) setErro(mensagemDeErro(e));
-        },
-      );
+      const falhou = (e: unknown) => {
+        if (geracao === minha) setCaptura({ estado: 'falhou', mensagem: mensagemDeErro(e) });
+      };
+      iniciarCaptura(quem, microfone.current, falhou).then((p) => {
+        if (geracao !== minha) {
+          p();
+          return;
+        }
+        parar = p;
+        setCaptura({ estado: 'ligada' });
+      }, falhou);
     };
     repetir.current = () => {
       if (pedido) iniciar(pedido);
@@ -132,7 +138,7 @@ function useCapturaDeAudio(microfoneId: string | null): {
       } else {
         pedido = null;
         pararTudo();
-        setErro(null); // sem captura pedida, um erro dela não tem mais o que dizer
+        setCaptura(CAPTURA_PARADA); // sem captura pedida, um erro dela não tem mais o que dizer
       }
     });
     return () => {
@@ -142,26 +148,47 @@ function useCapturaDeAudio(microfoneId: string | null): {
     };
   }, []);
 
-  return { erro, limpar: () => setErro(null), tentarDeNovo: () => repetir.current?.() };
+  return { captura, limpar: () => setCaptura(CAPTURA_PARADA), tentarDeNovo: () => repetir.current?.() };
 }
 
 function App() {
   const [tela, setTela] = useState<Tela>('nova');
   const [emReuniao, setEmReuniao] = useState<{ modo: PedidoReuniao['modo'] } | null>(null);
+  const [iniciando, setIniciando] = useState(false);
   const [instantaneo, setInstantaneo] = useState<InstantaneoReuniao | null>(null);
 
   // Sem a chave da Anthropic o programa não faz nada: abre direto nas Configurações.
   const { config, erro: erroConfig, reconsultar } = useConfig((c) => {
     if (!c.temChaves.anthropic) setTela('config');
   });
-  const captura = useCapturaDeAudio(config?.preferencias.microfoneId ?? null);
+  const { captura, limpar: limparCaptura, tentarDeNovo: tentarCapturaDeNovo } = useCapturaDeAudio(
+    config?.preferencias.microfoneId ?? null,
+  );
+  const falhaDaCaptura = captura.estado === 'falhou' ? captura.mensagem : null;
+  const reuniaoNoAr = emReuniao !== null || iniciando; // enquanto dura, a falha da captura não pode ser dispensada
+
+  // O painel também precisa saber: ele não tem como pedir uma nova tentativa, só avisar para voltar a esta janela.
+  useEffect(() => {
+    copiloto.audio.falhaCaptura(falhaDaCaptura);
+  }, [falhaDaCaptura]);
 
   // O estado da reunião é guardado aqui, e não na tela, para não perder o que chegou antes de ela abrir.
   useEffect(() => copiloto.reuniao.aoInstantaneo(setInstantaneo), []);
 
   async function iniciarReuniao(pedido: PedidoReuniao) {
+    // Dentro do clique em Iniciar (antes de qualquer `await`): só agora o navegador aceita pedir o som do computador.
+    // O processo principal manda ligar a captura bem depois, quando já leu os documentos.
+    if (pedido.modo === 'audio') prepararSomDoComputador();
     setInstantaneo(null);
-    await copiloto.reuniao.iniciar(pedido);
+    setIniciando(true);
+    try {
+      await copiloto.reuniao.iniciar(pedido);
+    } catch (e) {
+      descartarSomPreparado();
+      throw e;
+    } finally {
+      setIniciando(false);
+    }
     setEmReuniao({ modo: pedido.modo });
   }
 
@@ -217,15 +244,17 @@ function App() {
               {aviso.texto}
             </p>
           ))}
-          {captura.erro && (
+          {falhaDaCaptura && (
             <p role="alert" className="flex flex-wrap items-center gap-3 bg-red-50 px-4 py-2 text-red-900">
-              <span>Falha na captura de áudio: {captura.erro}</span>
-              <button type="button" className="font-medium underline" onClick={captura.tentarDeNovo}>
+              <span>Falha na captura de áudio: {falhaDaCaptura}</span>
+              <button type="button" className="font-medium underline" onClick={tentarCapturaDeNovo}>
                 Tentar de novo
               </button>
-              <button type="button" className="font-medium underline" onClick={captura.limpar}>
-                Fechar aviso
-              </button>
+              {!reuniaoNoAr && (
+                <button type="button" className="font-medium underline" onClick={limparCaptura}>
+                  Fechar aviso
+                </button>
+              )}
             </p>
           )}
         </div>
@@ -249,6 +278,8 @@ function App() {
                   modo={emReuniao.modo}
                   instantaneo={instantaneo}
                   avisosJaMostrados={avisosDoApp.map((a) => a.id)}
+                  capturaFalhou={falhaDaCaptura !== null}
+                  aoTentarCapturaDeNovo={tentarCapturaDeNovo}
                   aoVoltar={() => sairDaReuniao('nova')}
                   aoVerHistorico={() => sairDaReuniao('historico')}
                 />

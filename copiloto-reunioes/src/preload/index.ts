@@ -46,6 +46,7 @@ const api: CopilotoApi = {
     enviar: (quem, pcm) => ipcRenderer.send(CANAIS.audioEnviar, quem, pcm),
     nivel: (quem, nivel) => ipcRenderer.send(CANAIS.audioNivel, quem, nivel),
     aoNivel: (cb) => ouvir(CANAIS.audioNivel, cb),
+    falhaCaptura: (mensagem) => ipcRenderer.send(CANAIS.audioFalhaCaptura, mensagem),
   },
   painel: {
     aoDigitar: (cb) => ouvir(CANAIS.painelDigitar, cb),

@@ -3,6 +3,7 @@ import { ATALHOS_PADRAO } from '../config/atalhos';
 import { PREFERENCIAS_PADRAO } from '../config/preferencias';
 import {
   ERRO_PEDIDO,
+  ehTextoOuNulo,
   lerChavesDaTela,
   lerConfigTreino,
   lerPedidoReuniao,
@@ -88,5 +89,16 @@ describe('paraBytes', () => {
     expect(paraBytes(visao)).toEqual(new Uint8Array([1, 2]));
     expect(paraBytes('pcm')).toBeNull();
     expect(paraBytes([1, 2])).toBeNull();
+  });
+});
+
+describe('ehTextoOuNulo', () => {
+  it('aceita um texto ou null e recusa o resto', () => {
+    expect(ehTextoOuNulo('a captura caiu')).toBe(true);
+    expect(ehTextoOuNulo('')).toBe(true);
+    expect(ehTextoOuNulo(null)).toBe(true);
+    expect(ehTextoOuNulo(undefined)).toBe(false);
+    expect(ehTextoOuNulo(3)).toBe(false);
+    expect(ehTextoOuNulo({})).toBe(false);
   });
 });

@@ -20,4 +20,5 @@ export const TEXTO_AVISO: Record<TipoAviso, string> = {
   cota: 'Limite ou crédito esgotado no provedor.',
   'erro-ia': 'A IA não respondeu agora.',
   'atalho-recusado': 'Um atalho já é usado por outro programa — escolha outro nas Configurações.',
+  'sem-captura': 'Sem captura de áudio — volte à janela principal e clique em Tentar de novo.',
 };

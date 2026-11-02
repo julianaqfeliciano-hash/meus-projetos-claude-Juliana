@@ -6,7 +6,7 @@ describe('textos', () => {
     expect(mensagemAviso('digitalizado')).toBe('Não foi possível ler o texto (PDF digitalizado?)');
   });
   it('todo tipo de aviso tem texto', () => {
-    for (const t of ['sem-som-outros', 'pausa-automatica', 'chave', 'cota', 'windows-antigo', 'resumo-falhou', 'erro-ia', 'atalho-recusado'] as const)
+    for (const t of ['sem-som-outros', 'pausa-automatica', 'chave', 'cota', 'windows-antigo', 'resumo-falhou', 'erro-ia', 'atalho-recusado', 'sem-captura'] as const)
       expect(TEXTO_AVISO[t].length).toBeGreaterThan(10);
   });
 });

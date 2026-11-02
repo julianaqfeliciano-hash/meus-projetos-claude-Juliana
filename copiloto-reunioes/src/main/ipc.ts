@@ -36,6 +36,7 @@ import {
   ehListaDeTextos,
   ehQuem,
   ehTexto,
+  ehTextoOuNulo,
   exigir,
   lerChavesDaTela,
   lerConfigTreino,
@@ -113,6 +114,9 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
 
   // Avisos do app (Windows antigo, atalho recusado): vão em `config.obter` e junto com os da reunião.
   const avisosApp = new Map<TipoAviso, Aviso>();
+  // A captura de áudio da reunião não está funcionando (a janela principal avisa). Vai nos instantâneos, para o painel
+  // mostrar, mas não em `config.obter`: só vale enquanto dura a reunião.
+  let falhaCaptura: Aviso | null = null;
 
   let sessao: SessaoReuniao | null = null;
   let iniciando = false;
@@ -153,7 +157,8 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
   }
 
   function comAvisos(i: InstantaneoReuniao): InstantaneoReuniao {
-    return avisosApp.size === 0 ? i : { ...i, avisos: [...avisosApp.values(), ...i.avisos] };
+    const doApp = falhaCaptura ? [...avisosApp.values(), falhaCaptura] : [...avisosApp.values()];
+    return doApp.length === 0 ? i : { ...i, avisos: [...doApp, ...i.avisos] };
   }
 
   function publicarInstantaneo(i: InstantaneoReuniao): void {
@@ -170,6 +175,20 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
 
   function retirarAviso(tipo: TipoAviso): void {
     if (avisosApp.delete(tipo) && sessao) publicarInstantaneo(sessao.instantaneo());
+  }
+
+  /** `mensagem`: a captura falhou; `null`: voltou a funcionar. Fora de uma reunião não há onde mostrar, e nada muda. */
+  function registrarFalhaCaptura(mensagem: string | null): void {
+    if (!sessao) return;
+    if (mensagem === null) {
+      if (!falhaCaptura) return;
+      falhaCaptura = null;
+    } else {
+      console.warn('A captura de áudio falhou:', mensagem);
+      if (falhaCaptura) return;
+      falhaCaptura = { id: randomUUID(), tipo: 'sem-captura', texto: TEXTO_AVISO['sem-captura'] };
+    }
+    publicarInstantaneo(sessao.instantaneo());
   }
 
   // ── Chaves ──
@@ -343,6 +362,7 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
       // A reunião usa o microfone: um ditado do treino que tenha ficado aberto é fechado.
       ditado.descartar();
       sessao = nova;
+      falhaCaptura = null;
       try {
         const inicio = nova.iniciar();
         painel.mostrar();
@@ -375,7 +395,10 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
       })
       .finally(() => {
         encerramento = null;
-        if (sessao === atual) sessao = null;
+        if (sessao === atual) {
+          sessao = null;
+          falhaCaptura = null;
+        }
       });
     return encerramento;
   }
@@ -387,6 +410,7 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
     painel.esconder();
     atual.descartar();
     sessao = null;
+    falhaCaptura = null;
   }
 
   // ── Treino ──
@@ -484,6 +508,9 @@ export function iniciarIpc(ctx: ContextoIpc): ControleReuniao {
       return;
     }
     sessao?.receberAudio(quem, bytes);
+  });
+  ouvir(CANAIS.audioFalhaCaptura, (mensagem) => {
+    if (ehTextoOuNulo(mensagem)) registrarFalhaCaptura(mensagem);
   });
   ouvir(CANAIS.audioNivel, (quem, nivel) => {
     if (ehQuem(quem) && typeof nivel === 'number' && Number.isFinite(nivel)) painel.enviar(CANAIS.audioNivel, quem, nivel);

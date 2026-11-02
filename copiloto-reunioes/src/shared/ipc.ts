@@ -21,7 +21,11 @@ export interface CopilotoApi {
     encerrar(): Promise<T.ItemHistoricoReuniao | null>;
     aoInstantaneo(cb: (i: T.InstantaneoReuniao) => void): () => void;
   };
-  audio: { enviar(quem: T.Quem, pcm: ArrayBuffer): void; nivel(quem: T.Quem, nivel: number): void; aoNivel(cb: (quem: T.Quem, nivel: number) => void): () => void };
+  audio: {
+    enviar(quem: T.Quem, pcm: ArrayBuffer): void; nivel(quem: T.Quem, nivel: number): void; aoNivel(cb: (quem: T.Quem, nivel: number) => void): () => void;
+    /** A janela principal avisa que a captura não está funcionando (mensagem) ou voltou a funcionar (`null`), para o painel mostrar. */
+    falhaCaptura(mensagem: string | null): void;
+  };
   painel: { aoDigitar(cb: () => void): () => void; terminarDigitacao(): void; aoPreferencias(cb: (p: T.Preferencias) => void): () => void };
   historico: { listar(): Promise<T.ResumoItemHistorico[]>; obter(id: string): Promise<T.ItemHistorico | null>; apagar(id: string): Promise<void> };
   treino: {
@@ -54,6 +58,7 @@ export const CANAIS = {
   reuniaoInstantaneo: 'reuniao:instantaneo',
   audioEnviar: 'audio:enviar',
   audioNivel: 'audio:nivel',
+  audioFalhaCaptura: 'audio:falhaCaptura',
   painelDigitar: 'painel:digitar',
   painelTerminarDigitacao: 'painel:terminarDigitacao',
   painelPreferencias: 'painel:preferencias',

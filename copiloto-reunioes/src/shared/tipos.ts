@@ -24,7 +24,7 @@ export interface ItemDetectado { tipo: 'pergunta' | 'conceito'; texto: string; i
 export type EstadoReuniao = 'preparando' | 'ouvindo' | 'pausado' | 'encerrando' | 'concluida';
 export type StatusConexao = 'ok' | 'reconectando' | 'erro';
 export type TipoAviso = 'sem-som-outros' | 'pausa-automatica' | 'chave' | 'cota'
-  | 'windows-antigo' | 'resumo-falhou' | 'erro-ia' | 'atalho-recusado';
+  | 'windows-antigo' | 'resumo-falhou' | 'erro-ia' | 'atalho-recusado' | 'sem-captura';
 export interface Aviso { id: string; tipo: TipoAviso; texto: string }
 export interface InstantaneoReuniao {
   estado: EstadoReuniao; modo: 'audio' | 'ensaio'; conexao: Record<Quem, StatusConexao>;

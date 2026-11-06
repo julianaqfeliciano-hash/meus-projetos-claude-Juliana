@@ -6,7 +6,8 @@
 import type { Cartao, ContextoReuniao, InstantaneoReuniao, Quem } from '../src/shared/tipos';
 
 const ESPERA_ENTRE_FALAS_MS = 3000;
-const ESPERA_MAX_CARTOES_MS = 60_000;
+const ESPERA_MAX_CARTOES_MS = 90_000;
+const SILENCIO_CARTOES_MS = 20_000;
 
 interface Uso {
   chamadas: number;
@@ -14,6 +15,12 @@ interface Uso {
   output: number;
   cacheCriado: number;
   cacheLido: number;
+}
+
+interface ChamadaUso {
+  modelo: string;
+  cacheLido: number;
+  cacheCriado: number;
 }
 
 async function main(): Promise<void> {
@@ -44,8 +51,14 @@ async function main(): Promise<void> {
 
   // O cliente é embrulhado só para somar o `usage`; os corpos dos pedidos seguem intactos.
   const uso: Uso = { chamadas: 0, input: 0, output: 0, cacheCriado: 0, cacheLido: 0 };
-  const somar = (u: unknown): void => {
+  const porChamada: ChamadaUso[] = [];
+  const somar = (u: unknown, modelo: unknown): void => {
     const x = (u ?? {}) as Record<string, number | null | undefined>;
+    porChamada.push({
+      modelo: String(modelo ?? '?'),
+      cacheLido: x.cache_read_input_tokens ?? 0,
+      cacheCriado: x.cache_creation_input_tokens ?? 0,
+    });
     uso.chamadas += 1;
     uso.input += x.input_tokens ?? 0;
     uso.output += x.output_tokens ?? 0;
@@ -54,14 +67,14 @@ async function main(): Promise<void> {
   };
   const cliente = new Anthropic({ apiKey: chave });
   const mensagens = cliente.beta.messages;
-  const criarOriginal = mensagens.create.bind(mensagens) as (...a: unknown[]) => Promise<{ usage?: unknown }>;
+  const criarOriginal = mensagens.create.bind(mensagens) as (...a: unknown[]) => Promise<{ usage?: unknown; model?: unknown }>;
   const streamOriginal = mensagens.stream.bind(mensagens) as (...a: unknown[]) => {
-    finalMessage(): Promise<{ usage?: unknown }>;
+    finalMessage(): Promise<{ usage?: unknown; model?: unknown }>;
   };
   Object.assign(mensagens, {
     create: async (...a: unknown[]) => {
       const r = await criarOriginal(...a);
-      somar(r.usage);
+      somar(r.usage, r.model);
       return r;
     },
     stream: (...a: unknown[]) => {
@@ -72,7 +85,7 @@ async function main(): Promise<void> {
         const m = await final();
         if (!registrado) {
           registrado = true;
-          somar(m.usage);
+          somar(m.usage, m.model);
         }
         return m;
       };
@@ -90,9 +103,7 @@ async function main(): Promise<void> {
   // Latência = do surgimento do cartão até o primeiro campo não vazio.
   const latencias = new Map<string, number>();
   const vistos = new Map<string, Cartao>();
-  let ultimo: InstantaneoReuniao | null = null;
   const publicar = (i: InstantaneoReuniao): void => {
-    ultimo = i;
     for (const c of i.cartoes) {
       vistos.set(c.id, c);
       if (!latencias.has(c.id) && Object.values(c.campos).some((v) => typeof v === 'string' && v.trim() !== '')) {
@@ -124,10 +135,20 @@ async function main(): Promise<void> {
     await dormir(ESPERA_ENTRE_FALAS_MS);
   }
 
+  // Espera o fim do pipeline: cartões escrevendo ou novos cartões nos últimos 20 s (o detector e a fila de
+  // automáticos ainda podem estar trabalhando). No máximo 90 s depois da última fala.
   const limite = Date.now() + ESPERA_MAX_CARTOES_MS;
+  let total = -1;
+  let mudouEm = Date.now();
   while (Date.now() < limite) {
-    const atual = (ultimo as InstantaneoReuniao | null) ?? sessao.instantaneo();
-    if (atual.cartoes.every((c) => c.estado !== 'escrevendo')) break;
+    const atual = sessao.instantaneo();
+    if (atual.cartoes.length !== total) {
+      total = atual.cartoes.length;
+      mudouEm = Date.now();
+    }
+    publicar(atual);
+    const escrevendo = atual.cartoes.some((c) => c.estado === 'escrevendo');
+    if (!escrevendo && Date.now() - mudouEm >= SILENCIO_CARTOES_MS) break;
     await dormir(500);
   }
   publicar(sessao.instantaneo());
@@ -153,6 +174,10 @@ async function main(): Promise<void> {
   console.log(`input_tokens: ${uso.input}, output_tokens: ${uso.output}`);
   console.log(`cache_creation_input_tokens: ${uso.cacheCriado}`);
   console.log(`cache_read_input_tokens: ${uso.cacheLido}`);
+  console.log('\nPor chamada (em ordem):');
+  porChamada.forEach((c, i) => {
+    console.log(`  ${i + 1}. ${c.modelo}  cache_read=${c.cacheLido}  cache_creation=${c.cacheCriado}`);
+  });
 }
 
 main().then(

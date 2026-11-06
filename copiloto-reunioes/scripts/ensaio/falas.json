@@ -1,0 +1,10 @@
+[
+  { "quem": "outros", "texto": "Bom dia a todos, vamos começar falando da implantação do SisFat na filial de Curitiba." },
+  { "quem": "outros", "texto": "Como funciona o rateio por centro de custo no SisFat?" },
+  { "quem": "voce", "texto": "Boa pergunta, vou explicar em seguida como o rateio é configurado." },
+  { "quem": "outros", "texto": "What is the SLA for critical tickets?" },
+  { "quem": "outros", "texto": "E o lote de faturamento roda quando?" },
+  { "quem": "outros", "texto": "Outra coisa: a NF-e é emitida automaticamente ao fechar o lote ou precisa de aprovação manual?" },
+  { "quem": "voce", "texto": "Vou conferir os detalhes e confirmo com vocês ainda hoje." },
+  { "quem": "outros", "texto": "Combinado. Então ficamos de definir a data do piloto até sexta-feira." }
+]

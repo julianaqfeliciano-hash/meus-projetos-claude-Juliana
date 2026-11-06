@@ -1,0 +1,17 @@
+appId: br.com.juliana.copilotoreunioes
+productName: Copiloto de Reuniões
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - node_modules/pdfjs-dist/**
+  - node_modules/@napi-rs/**
+npmRebuild: false
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  perMachine: false
+artifactName: Copiloto-de-Reunioes-Setup-${version}.${ext}

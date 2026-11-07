@@ -37,7 +37,8 @@ describe('criarResumidor', () => {
       fallbacks: 'default',
       output_config: { effort: 'medium', format: { type: 'json_schema' } },
     });
-    expect(args.system).toEqual(prefixo.system);
+    expect(args.system).toEqual(prefixo.system.map((b) => ({ type: 'text', text: b.text })));
+    expect(falso.create.mock.calls[0][1]).toEqual({ timeout: 90_000, maxRetries: 1 });
     for (const campo of ['thinking', 'temperature', 'top_p', 'top_k']) expect(args).not.toHaveProperty(campo);
   });
 
@@ -55,16 +56,25 @@ describe('criarResumidor', () => {
     falso.create.mockResolvedValue(respostaTexto(JSON.stringify(resumoValido)));
     await criarResumidor(falso.cliente, prefixo).resumir(falas, ['Rateio', 'Centro de custo']);
     const conteudo = falso.create.mock.calls[0][0].messages[0].content;
-    expect(conteudo[0]).toMatchObject({ type: 'document' });
-    const tarefa = conteudo.at(-1).text;
+    const tarefa = typeof conteudo === 'string' ? conteudo : conteudo.at(-1).text;
     expect(tarefa).toContain('[Outros] Como funciona o rateio?\n[Você] Ele divide os custos entre centros.');
     expect(tarefa).toContain('Rateio; Centro de custo');
+  });
+
+  it('não envia documentos nem cache_control (pedido único, sem reaproveitar cache)', async () => {
+    falso.create.mockResolvedValue(respostaTexto(JSON.stringify(resumoValido)));
+    await criarResumidor(falso.cliente, prefixo).resumir(falas, []);
+    const args = falso.create.mock.calls[0][0];
+    expect(JSON.stringify(args)).not.toContain('cache_control');
+    expect(JSON.stringify(args)).not.toContain('"document"');
+    expect(JSON.stringify(args)).not.toContain('O rateio divide custos');
+    expect(args.system.map((b: { text: string }) => b.text).join('\n')).toContain('Consultora');
   });
 
   it('sem conceitos a tarefa diz "nenhum"', async () => {
     falso.create.mockResolvedValue(respostaTexto(JSON.stringify(resumoValido)));
     await criarResumidor(falso.cliente, prefixo).resumir(falas, []);
-    expect(falso.create.mock.calls[0][0].messages[0].content.at(-1).text).toMatch(/Conceitos[^\n]*: nenhum/);
+    expect(falso.create.mock.calls[0][0].messages[0].content).toMatch(/Conceitos[^\n]*: nenhum/);
   });
 
   it('resposta fora do esquema é rejeitada', async () => {

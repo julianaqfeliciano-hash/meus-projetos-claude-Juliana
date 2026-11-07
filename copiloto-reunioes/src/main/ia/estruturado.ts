@@ -16,19 +16,24 @@ export async function pedirEstruturado<T>(
     mensagens: Anthropic.Beta.Messages.BetaMessageParam[];
     esquema: z.ZodType<T>;
     maxTokens: number;
+    /** Limite de tempo e de novas tentativas deste pedido (o padrão do SDK é 10 min × 2 tentativas). */
+    opcoes?: { timeout?: number; maxRetries?: number };
   },
 ): Promise<T> {
   const schema: Record<string, unknown> = z.toJSONSchema(args.esquema);
   delete schema.$schema; // a API não precisa dele (o helper de zod do SDK também o descarta)
 
-  const resposta = await cliente.beta.messages.create({
-    model: args.modelo,
-    max_tokens: args.maxTokens,
-    system: args.system,
-    messages: args.mensagens,
-    output_config: { effort: args.esforco, format: { type: 'json_schema', schema } },
-    ...(args.modelo === MODELO_PRINCIPAL ? ({ betas: BETAS_OPUS, fallbacks: 'default' } as const) : {}),
-  });
+  const resposta = await cliente.beta.messages.create(
+    {
+      model: args.modelo,
+      max_tokens: args.maxTokens,
+      system: args.system,
+      messages: args.mensagens,
+      output_config: { effort: args.esforco, format: { type: 'json_schema', schema } },
+      ...(args.modelo === MODELO_PRINCIPAL ? ({ betas: BETAS_OPUS, fallbacks: 'default' } as const) : {}),
+    },
+    args.opcoes,
+  );
 
   if (resposta.stop_reason === 'refusal') throw new RecusaIa();
   const texto = resposta.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('');

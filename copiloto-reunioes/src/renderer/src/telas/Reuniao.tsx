@@ -100,12 +100,16 @@ export function Reuniao({
   const [fim, setFim] = useState<{ item: ItemHistoricoReuniao | null; erro: string | null } | null>(null);
   const [fala, setFala] = useState('');
   const [quemFala, setQuemFala] = useState<Quem>('outros');
+  // Em reunião de áudio, os cartões e a transcrição ficam escondidos: se ela compartilhar a tela inteira, o cliente os veria.
+  const [mostrarConteudo, setMostrarConteudo] = useState(false);
   const fimDaTranscricao = useRef<HTMLDivElement>(null);
+  const encerramentoPedido = useRef(false);
 
   const estado = instantaneo?.estado ?? 'preparando';
-  // Encerrada sem o nosso pedido (ex.: pelo botão do painel). Durante o nosso `encerrar`, o estado `concluida`
-  // chega um instante antes da resposta, e o resumo ainda vem por ela.
+  // Encerrada sem o nosso pedido e sem termos acompanhado o fim (ver o efeito abaixo). Durante o nosso `encerrar`,
+  // o estado `concluida` chega um instante antes da resposta, e o resumo ainda vem por ela.
   const encerradaEmOutroLugar = fim === null && !encerrando && estado === 'concluida';
+  const conteudoVisivel = modo === 'ensaio' || mostrarConteudo;
   const podePausar = estado === 'ouvindo' || estado === 'pausado';
   const transcricao = instantaneo?.transcricao.slice(-MAX_FALAS_NA_TELA) ?? [];
 
@@ -114,7 +118,14 @@ export function Reuniao({
     if (caixa) caixa.scrollTop = caixa.scrollHeight;
   }, [transcricao.length, instantaneo?.parciais.voce, instantaneo?.parciais.outros]);
 
+  // Encerrada pelo painel: o processo principal devolve a mesma promessa do encerramento em curso, então
+  // pedir de novo aqui é como "entrar" nele e saber se o resumo foi salvo.
+  useEffect(() => {
+    if (estado === 'encerrando' && !encerramentoPedido.current) void encerrar();
+  });
+
   async function encerrar() {
+    encerramentoPedido.current = true;
     setEncerrando(true);
     try {
       setFim({ item: await copiloto.reuniao.encerrar(), erro: null });
@@ -141,7 +152,7 @@ export function Reuniao({
         {fim?.erro && <p className="text-red-700">{fim.erro}</p>}
         {fim?.item && <DetalheReuniao item={fim.item} />}
         {fim && !fim.item && !fim.erro && <p>Esta reunião já tinha sido encerrada.</p>}
-        {encerradaEmOutroLugar && <p>A reunião foi encerrada pelo painel. O resumo está no Histórico.</p>}
+        {encerradaEmOutroLugar && <p>A reunião foi encerrada. Confira o Histórico.</p>}
         <div className="flex flex-wrap gap-3">
           <button type="button" className={BOTAO} onClick={aoVoltar}>
             Nova reunião
@@ -229,40 +240,51 @@ export function Reuniao({
         </form>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
-        <section className="space-y-3" aria-label="Cartões">
-          {cartoes.length === 0 && (
-            <p className="rounded-lg border border-dashed border-slate-300 p-6 text-slate-600">
-              Os cartões aparecem aqui quando alguém fizer uma pergunta ou citar um termo técnico. O mais novo fica em cima.
-            </p>
-          )}
-          {cartoes.map((cartao, i) => (
-            <CartaoGrande key={cartao.id} cartao={cartao} atual={i === instantaneo?.indiceAtual} />
-          ))}
-        </section>
+      {modo === 'audio' && (
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" className={BOTAO_SECUNDARIO} aria-pressed={mostrarConteudo} onClick={() => setMostrarConteudo((v) => !v)}>
+            {mostrarConteudo ? 'Ocultar cartões e transcrição' : 'Mostrar cartões e transcrição'}
+          </button>
+          <p className="text-slate-600">Os cartões ficam no painel flutuante, que não aparece no compartilhamento de tela.</p>
+        </div>
+      )}
 
-        <section aria-label="Transcrição" className="min-w-0">
-          <h2 className="mb-2 text-xl font-semibold">Transcrição</h2>
-          <div ref={fimDaTranscricao} className="max-h-[60vh] space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
-            {transcricao.length === 0 && !instantaneo?.parciais.voce && !instantaneo?.parciais.outros && (
-              <p className="text-slate-500">{modo === 'ensaio' ? 'As falas digitadas aparecem aqui.' : 'Nada ouvido ainda.'}</p>
-            )}
-            {transcricao.map((f, i) => (
-              <p key={`${f.em}-${i}`}>
-                <span className="font-semibold">{NOME_QUEM[f.quem]}:</span> {f.texto}
+      {conteudoVisivel && (
+        <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
+          <section className="space-y-3" aria-label="Cartões">
+            {cartoes.length === 0 && (
+              <p className="rounded-lg border border-dashed border-slate-300 p-6 text-slate-600">
+                Os cartões aparecem aqui quando alguém fizer uma pergunta ou citar um termo técnico. O mais novo fica em cima.
               </p>
-            ))}
-            {(['voce', 'outros'] as const).map(
-              (q) =>
-                instantaneo?.parciais[q] && (
-                  <p key={q} className="text-slate-500">
-                    <span className="font-semibold">{NOME_QUEM[q]}:</span> {instantaneo.parciais[q]}
-                  </p>
-                ),
             )}
-          </div>
-        </section>
-      </div>
+            {cartoes.map((cartao, i) => (
+              <CartaoGrande key={cartao.id} cartao={cartao} atual={i === instantaneo?.indiceAtual} />
+            ))}
+          </section>
+
+          <section aria-label="Transcrição" className="min-w-0">
+            <h2 className="mb-2 text-xl font-semibold">Transcrição</h2>
+            <div ref={fimDaTranscricao} className="max-h-[60vh] space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
+              {transcricao.length === 0 && !instantaneo?.parciais.voce && !instantaneo?.parciais.outros && (
+                <p className="text-slate-500">{modo === 'ensaio' ? 'As falas digitadas aparecem aqui.' : 'Nada ouvido ainda.'}</p>
+              )}
+              {transcricao.map((f, i) => (
+                <p key={`${f.em}-${i}`}>
+                  <span className="font-semibold">{NOME_QUEM[f.quem]}:</span> {f.texto}
+                </p>
+              ))}
+              {(['voce', 'outros'] as const).map(
+                (q) =>
+                  instantaneo?.parciais[q] && (
+                    <p key={q} className="text-slate-500">
+                      <span className="font-semibold">{NOME_QUEM[q]}:</span> {instantaneo.parciais[q]}
+                    </p>
+                  ),
+              )}
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

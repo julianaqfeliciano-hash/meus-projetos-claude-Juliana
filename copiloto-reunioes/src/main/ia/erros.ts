@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-export type ClasseErro = 'chave' | 'permissao' | 'limite' | 'rede' | 'recusa' | 'tempo' | 'outro';
+export type ClasseErro = 'chave' | 'permissao' | 'credito' | 'limite' | 'rede' | 'recusa' | 'tempo' | 'outro';
 
 /** O modelo recusou o pedido (`stop_reason: 'refusal'`). */
 export class RecusaIa extends Error {
@@ -23,6 +23,8 @@ export function classificarErro(e: unknown): ClasseErro {
   if (e instanceof Anthropic.AuthenticationError) return 'chave';
   if (e instanceof Anthropic.PermissionDeniedError) return 'permissao';
   if (e instanceof Anthropic.RateLimitError) return 'limite';
+  // O SDK não tem subclasse para 402 (`billing_error`: sem crédito ou limite de gasto).
+  if (e instanceof Anthropic.APIError && e.status === 402) return 'credito';
   if (e instanceof Anthropic.APIConnectionError) return 'rede';
   if (e instanceof RecusaIa) return 'recusa';
   if (e instanceof TempoEsgotado) return 'tempo';
@@ -34,6 +36,7 @@ const MENSAGEM_ERRO_CHAVE = 'Chave da Anthropic inválida ou sem permissão — 
 const MENSAGEM_ERRO: Record<ClasseErro, string> = {
   chave: MENSAGEM_ERRO_CHAVE,
   permissao: MENSAGEM_ERRO_CHAVE,
+  credito: 'Sem crédito na Anthropic — confira em console.anthropic.com.',
   limite: 'Limite de uso da IA atingido — aguarde um pouco e tente de novo.',
   rede: 'Sem conexão com a IA — confira a internet.',
   tempo: 'A IA demorou demais — tente de novo.',

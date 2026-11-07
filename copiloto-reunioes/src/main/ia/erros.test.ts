@@ -10,6 +10,12 @@ describe('classificarErro', () => {
     expect(classificarErro(Object.create(Anthropic.APIConnectionError.prototype))).toBe('rede');
   });
 
+  it('402 (sem crédito) é "credito"', () => {
+    const e = Object.assign(Object.create(Anthropic.APIError.prototype), { status: 402 }) as Error;
+    expect(classificarErro(e)).toBe('credito');
+    expect(classificarErro(Object.assign(Object.create(Anthropic.APIError.prototype), { status: 500 }))).toBe('outro');
+  });
+
   it('timeout de conexão do SDK também é erro de rede', () => {
     expect(classificarErro(Object.create(Anthropic.APIConnectionTimeoutError.prototype))).toBe('rede');
   });
@@ -55,6 +61,8 @@ describe('mensagemErroIa', () => {
     expect(mensagemErroIa(Object.create(Anthropic.APIConnectionError.prototype))).toBe(
       'Sem conexão com a IA — confira a internet.',
     );
+    const semCredito = Object.assign(Object.create(Anthropic.APIError.prototype), { status: 402 }) as Error;
+    expect(mensagemErroIa(semCredito)).toBe('Sem crédito na Anthropic — confira em console.anthropic.com.');
     expect(mensagemErroIa(new TempoEsgotado())).toBe('A IA demorou demais — tente de novo.');
     expect(mensagemErroIa(new RecusaIa())).toBe('A IA não conseguiu responder a este pedido.');
   });

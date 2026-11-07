@@ -59,6 +59,7 @@ function pedir<T>(cliente: Anthropic, cfg: ConfigTreino, tarefa: string, esquema
     mensagens: [{ role: 'user', content: tarefa }],
     esquema,
     maxTokens: 8000,
+    opcoes: { timeout: 60_000, maxRetries: 1 },
   });
 }
 

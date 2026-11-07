@@ -39,6 +39,7 @@ describe('criarDetector', () => {
     expect(args.betas).toBeUndefined();
     expect(args.thinking).toBeUndefined();
     expect(args.system).toEqual(prefixo.system);
+    expect(falso.create.mock.calls[0][1]).toEqual({ timeout: 20_000, maxRetries: 1 });
   });
 
   it('o esquema pedido tem additionalProperties: false em todos os níveis', async () => {

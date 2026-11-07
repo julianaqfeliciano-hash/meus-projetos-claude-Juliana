@@ -34,7 +34,8 @@ O programa precisa de duas chaves, que você cola nas Configurações na primeir
 
 1. Entre em https://console.anthropic.com e crie uma conta.
 2. Crie uma chave de API.
-3. Defina um **limite de gasto mensal** (por exemplo, US$ 20), para nunca ter surpresa na fatura.
+3. Compre créditos em console.anthropic.com → Billing (sem crédito a IA não responde).
+4. Defina um **limite de gasto mensal** (por exemplo, US$ 20), para nunca ter surpresa na fatura.
 
 **Soniox (a transcrição)**
 
@@ -44,7 +45,7 @@ O programa precisa de duas chaves, que você cola nas Configurações na primeir
 
 ## Uso no dia a dia
 
-1. Em **Nova reunião**, anexe os documentos da reunião: PDF (com texto), Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), `.txt` ou `.md`. Formatos antigos (`.doc`, `.xls`, `.ppt`) não são aceitos. O limite é de cerca de 80 mil tokens por reunião (aproximadamente 160 páginas).
+1. Em **Nova reunião**, anexe os documentos da reunião: PDF (com texto), Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), `.txt` ou `.md`. Formatos antigos (`.doc`, `.xls`, `.ppt`) não são aceitos. O limite é de cerca de 80 mil tokens por reunião (≈ 150 páginas).
 2. Escreva um pouco de **contexto** (quem é o cliente, qual o assunto).
 3. Marque **"Avisei os participantes"**. É o lembrete da LGPD: avise as pessoas de que a reunião está sendo transcrita. Sem isso o programa não inicia uma reunião com áudio.
 4. Clique em **Iniciar**.
@@ -53,7 +54,7 @@ O programa precisa de duas chaves, que você cola nas Configurações na primeir
 7. Abra o Teams ou o Meet e participe normalmente. O painel flutuante fica por cima e **não aparece quando você compartilha a tela** no Windows 10 2004 ou mais novo e no Windows 11.
 8. Ao encerrar, o resumo e os conceitos ficam no **Histórico**.
 
-Pausado (`Ctrl+Alt+B`), nenhum áudio é enviado e nada é cobrado. O **modo ensaio** funciona como uma reunião, mas com falas digitadas no lugar do áudio: use para testar os documentos antes de uma reunião.
+Pausado (`Ctrl+Alt+B`), nenhum áudio é enviado e nada é cobrado. O botão **Ensaiar** (que funciona sem marcar a caixa "Avisei os participantes") funciona como uma reunião, mas com falas digitadas no lugar do áudio: use para testar os documentos antes de uma reunião.
 
 ## Atalhos
 

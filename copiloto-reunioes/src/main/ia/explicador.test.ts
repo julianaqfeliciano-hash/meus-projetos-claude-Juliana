@@ -142,6 +142,13 @@ describe('explicar', () => {
     expect(falso.stream).toHaveBeenCalledTimes(1);
   });
 
+  it('não tenta de novo sem crédito (402)', async () => {
+    const erro = Object.assign(Object.create(Anthropic.APIError.prototype), { status: 402 }) as Error;
+    falso.stream.mockReturnValue(streamFalso([], 'end_turn', erro));
+    await expect(criarExplicador(falso.cliente, prefixo).explicar(pedidoConceito, () => undefined)).rejects.toBe(erro);
+    expect(falso.stream).toHaveBeenCalledTimes(1);
+  });
+
   it('estoura o tempo: aborta o pedido e rejeita com TempoEsgotado após 2 tentativas', async () => {
     const sinais: AbortSignal[] = [];
     falso.stream.mockImplementation((_params, opcoes: { signal: AbortSignal }) => {

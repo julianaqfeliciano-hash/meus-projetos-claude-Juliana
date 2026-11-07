@@ -40,7 +40,12 @@ function Avaliacao({ avaliacao }: { avaliacao: AvaliacaoResposta }) {
   );
 }
 
-export function Treino() {
+interface PropsTreino {
+  /** Avisa quando o ditado liga ou desliga: com o microfone aberto, o menu fica travado até ela clicar em "Terminei". */
+  aoMudarDitado?: (ativo: boolean) => void;
+}
+
+export function Treino({ aoMudarDitado }: PropsTreino = {}) {
   const [fase, setFase] = useState<Fase>('preparar');
   const [erro, setErro] = useState<string | null>(null);
 
@@ -65,6 +70,11 @@ export function Treino() {
 
   // Relatório
   const [item, setItem] = useState<ItemHistoricoTreino | null>(null);
+
+  const ditando = modo === 'falando';
+  useEffect(() => {
+    aoMudarDitado?.(ditando);
+  }, [ditando, aoMudarDitado]);
 
   // O texto que a Soniox já entendeu da fala em andamento; só chega durante o ditado.
   useEffect(() => copiloto.treino.aoDitado(setParcial), []);

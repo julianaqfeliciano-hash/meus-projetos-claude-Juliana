@@ -4,7 +4,7 @@ import type { Fala, ResumoReuniao } from '../../shared/tipos';
 import { formatarFalas } from '../transcricao/transcricao';
 import { pedirEstruturado } from './estruturado';
 import { MODELO_PRINCIPAL } from './modelos';
-import { montarMensagens, type PrefixoPedido } from './prefixo';
+import type { PrefixoPedido } from './prefixo';
 
 export interface Resumidor {
   resumir(transcricao: Fala[], conceitos: string[]): Promise<ResumoReuniao>;
@@ -27,10 +27,12 @@ export function criarResumidor(cliente: Anthropic, prefixo: PrefixoPedido): Resu
       return pedirEstruturado(cliente, {
         modelo: MODELO_PRINCIPAL,
         esforco: 'medium',
-        system: prefixo.system,
-        mensagens: montarMensagens(prefixo, tarefa),
+        // Sem os documentos e sem cache: é um pedido único, e gravar 80 mil tokens de cache custaria mais que a reunião.
+        system: prefixo.system.map((b) => ({ type: b.type, text: b.text })),
+        mensagens: [{ role: 'user', content: tarefa }],
         esquema,
         maxTokens: 8000,
+        opcoes: { timeout: 90_000, maxRetries: 1 },
       });
     },
   };

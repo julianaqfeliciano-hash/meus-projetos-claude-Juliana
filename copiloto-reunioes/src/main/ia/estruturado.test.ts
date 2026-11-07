@@ -19,6 +19,14 @@ const chamar = (modelo: string, esforco: 'low' | 'medium' = 'low') =>
   pedirEstruturado(falso.cliente, { modelo, esforco, system: prefixo.system, mensagens, esquema, maxTokens: 123 });
 
 describe('pedirEstruturado', () => {
+  it('repassa timeout e tentativas como segundo argumento do SDK', async () => {
+    falso.create.mockResolvedValue(respostaTexto('{"nome":"a","itens":[]}'));
+    await pedirEstruturado(falso.cliente, {
+      modelo: 'm', esforco: 'low', system: [], mensagens: [], esquema, maxTokens: 1, opcoes: { timeout: 5, maxRetries: 0 },
+    });
+    expect(falso.create.mock.calls[0][1]).toEqual({ timeout: 5, maxRetries: 0 });
+  });
+
   it('manda o esquema JSON, valida e devolve o objeto', async () => {
     falso.create.mockResolvedValue(respostaTexto('{"nome":"a","itens":[{"n":1}]}'));
     expect(await chamar(MODELO_DETECTOR, 'medium')).toEqual({ nome: 'a', itens: [{ n: 1 }] });

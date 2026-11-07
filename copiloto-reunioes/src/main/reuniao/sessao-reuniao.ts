@@ -462,6 +462,7 @@ class Reuniao implements SessaoReuniao {
     cartao.estado = 'erro';
     cartao.erro = classe === 'recusa' ? ERRO_RECUSA : ERRO_CARTAO;
     if (classe === 'chave' || classe === 'permissao') this.adicionarAviso('chave');
+    if (classe === 'credito') this.adicionarAviso('cota');
   }
 
   // ── Encerramento ─────────────────────────────────────────────────────────────────────────────────

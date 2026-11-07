@@ -400,6 +400,13 @@ describe('erros dos cartões', () => {
     expect(s.instantaneo().avisos).toEqual([{ id: expect.any(String), tipo: 'chave', texto: TEXTO_AVISO.chave }]);
   });
 
+  it('sem crédito (402) gera o aviso de cota', async () => {
+    const erro = Object.assign(Object.create(Anthropic.APIError.prototype), { status: 402 }) as Error;
+    const s = await cartaoQueFalhaCom(erro);
+    expect(s.instantaneo().cartoes[0]).toMatchObject({ estado: 'erro', erro: ERRO_PADRAO });
+    expect(tiposAvisos(s)).toEqual(['cota']);
+  });
+
   it('sem permissão também gera o aviso de chave', async () => {
     const s = await cartaoQueFalhaCom(erroDe(Anthropic.PermissionDeniedError));
     expect(tiposAvisos(s)).toEqual(['chave']);

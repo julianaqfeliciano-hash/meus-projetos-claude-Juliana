@@ -35,6 +35,7 @@ export function criarDetector(cliente: Anthropic, prefixo: PrefixoPedido): Detec
         mensagens: montarMensagens(prefixo, tarefa),
         esquema,
         maxTokens: 2000,
+        opcoes: { timeout: 20_000, maxRetries: 1 },
       });
       return itens.slice(0, MAX_ITENS);
     },

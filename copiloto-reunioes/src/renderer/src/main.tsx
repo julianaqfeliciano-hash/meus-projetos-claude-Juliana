@@ -155,6 +155,7 @@ function App() {
   const [tela, setTela] = useState<Tela>('nova');
   const [emReuniao, setEmReuniao] = useState<{ modo: PedidoReuniao['modo'] } | null>(null);
   const [iniciando, setIniciando] = useState(false);
+  const [ditando, setDitando] = useState(false); // o treino está com o microfone aberto
   const [instantaneo, setInstantaneo] = useState<InstantaneoReuniao | null>(null);
 
   // Sem a chave da Anthropic o programa não faz nada: abre direto nas Configurações.
@@ -210,7 +211,7 @@ function App() {
           <button
             key={destino}
             type="button"
-            disabled={emReuniao !== null}
+            disabled={emReuniao !== null || ditando}
             aria-current={emReuniao === null && tela === destino ? 'page' : undefined}
             onClick={() => setTela(destino)}
             className={`rounded px-3 py-2 text-left font-medium disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -225,6 +226,7 @@ function App() {
             {emReuniao.modo === 'ensaio' ? 'Ensaio' : 'Reunião'} em andamento. Encerre para usar o menu.
           </p>
         )}
+        {ditando && <p className="mt-3 px-3 text-slate-600">Gravando a sua resposta. Clique em Terminei para usar o menu.</p>}
       </nav>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -232,7 +234,7 @@ function App() {
           {chaveInvalida && (
             <p role="alert" className="flex flex-wrap items-center gap-3 bg-red-50 px-4 py-2 text-red-900">
               <span>{TEXTO_AVISO.chave}</span>
-              {emReuniao === null && (
+              {emReuniao === null && !ditando && (
                 <button type="button" className="font-medium underline" onClick={() => setTela('config')}>
                   Abrir as Configurações
                 </button>
@@ -289,7 +291,7 @@ function App() {
                 <NovaReuniao aoIniciar={iniciarReuniao} />
               </div>
               <div hidden={emReuniao !== null || tela !== 'treino'}>
-                <Treino />
+                <Treino aoMudarDitado={setDitando} />
               </div>
               {emReuniao === null && tela === 'historico' && <Historico />}
               {emReuniao === null && tela === 'config' && (

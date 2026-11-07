@@ -87,6 +87,7 @@ describe('gerarPerguntas', () => {
       fallbacks: 'default',
       output_config: { effort: 'medium', format: { type: 'json_schema' } },
     });
+    expect(falso.create.mock.calls[0][1]).toEqual({ timeout: 60_000, maxRetries: 1 });
     for (const campo of ['thinking', 'temperature', 'top_p', 'top_k']) expect(chamada()).not.toHaveProperty(campo);
   });
 
@@ -170,6 +171,7 @@ describe('avaliar', () => {
       fallbacks: 'default',
       output_config: { effort: 'medium', format: { type: 'json_schema' } },
     });
+    expect(falso.create.mock.calls[0][1]).toEqual({ timeout: 60_000, maxRetries: 1 });
     for (const campo of ['thinking', 'temperature', 'top_p', 'top_k']) expect(chamada()).not.toHaveProperty(campo);
   });
 

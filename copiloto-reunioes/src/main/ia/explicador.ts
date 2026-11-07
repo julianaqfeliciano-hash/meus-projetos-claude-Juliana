@@ -128,7 +128,7 @@ export function criarExplicador(
           return await tentar(pedido, aoAtualizar);
         } catch (e) {
           const classe = classificarErro(e);
-          if (classe === 'chave' || classe === 'permissao') throw e;
+          if (classe === 'chave' || classe === 'permissao' || classe === 'credito') throw e;
           ultimoErro = e;
         }
       }

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it, expect } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it, expect } from 'vitest';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,6 +8,18 @@ import { gerarDocx, gerarPdf, gerarPptx, gerarXlsx } from './gerar-exemplos';
 
 // PDF de 2 páginas com texto, criptografado (AES-128) com a senha "segredo".
 const PDF_COM_SENHA = 'JVBERi0xLjcKJeLjz9MKMSAwIG9iago8PAovUHJvZHVjZXIgPDViN2VjNDUxMjUzNTJjNmFjY2Q3ZTY2Njg3YmUyNWM5OGI4ZjhiODI0ZjMxM2FhNzQ5MTY4YjMzMWE2ZTdkZDk+Cj4+CmVuZG9iagoyIDAgb2JqCjw8Ci9UeXBlIC9QYWdlcwovQ291bnQgMgovS2lkcyBbIDQgMCBSIDcgMCBSIF0KPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDIgMCBSCj4+CmVuZG9iago0IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKL0hlbHZldGljYS03MDk4NDgwNzg5IDUgMCBSCj4+Ci9YT2JqZWN0IDw8Cj4+Ci9FeHRHU3RhdGUgPDwKPj4KPj4KL01lZGlhQm94IFsgMCAwIDU5NS4yOCA4NDEuODkgXQovQW5ub3RzIFsgXQovQ29udGVudHMgWyA2IDAgUiBdCi9QYXJlbnQgMiAwIFIKPj4KZW5kb2JqCjUgMCBvYmoKPDwKL1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvSGVsdmV0aWNhCi9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nCj4+CmVuZG9iago2IDAgb2JqCjw8Ci9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggMTQ0Cj4+CnN0cmVhbQo2h3PMH6hMeU3PixcthcvT2bn0rcbrkM1AIfyaVGB5fg/4DPAUV24KDZruUy7g/ncUVXL4TgVjl+8/VKFdNYtXrg+St7HaCC0z3zlD+RWpph5/6Z5KUvhpVNcDyR2dN1mt9ZFEdwmIhuaSoZEPQ6mDF0J7qqs9kAf5ksn531fLSd/w887QOi90NK8tttzrauEKZW5kc3RyZWFtCmVuZG9iago3IDAgb2JqCjw8Ci9UeXBlIC9QYWdlCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKL0hlbHZldGljYS05NzQyNjgyNTY4IDUgMCBSCj4+Ci9YT2JqZWN0IDw8Cj4+Ci9FeHRHU3RhdGUgPDwKPj4KPj4KL01lZGlhQm94IFsgMCAwIDU5NS4yOCA4NDEuODkgXQovQW5ub3RzIFsgXQovQ29udGVudHMgWyA4IDAgUiBdCi9QYXJlbnQgMiAwIFIKPj4KZW5kb2JqCjggMCBvYmoKPDwKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCAxNDQKPj4Kc3RyZWFtCnNlbrdokmTt/qYfrrVyuF0znk1/rdzofuyRZlkCUopOwxRzDW52JArcmR0JtO53UHrwk9ciMroEwHyrVQ+XbBsN//7eaS1PnFORAp1I5jlPXPJF9Asw1qor96THYI5gicGfCaeUQh+alMzGNu406ixSzfflK/G1oSmYEqJtpFyYy4XZPgxkgFgowGtpJbVkegplbmRzdHJlYW0KZW5kb2JqCjkgMCBvYmoKPDwKL1YgNAovUiA0Ci9MZW5ndGggMTI4Ci9QIDQyOTQ5NjcyOTIKL0ZpbHRlciAvU3RhbmRhcmQKL08gPDBhZmJhNWM3M2IxYjU3M2ZkNzIwYmYzMTU5ZWZmYThlODI0OTE3ODkyZTI3ZDZhNDM1ZmMwNjQ2MWM2M2I4MGQ+Ci9VIDxiM2M3ZDRjOTZiODMzZTVlYmY2YTQ1NmFhZmQ3ZTA2NjI4YmY0ZTVlNGU3NThhNDE2NDAwNGU1NmZmZmEwMTA4PgovQ0YgPDwKL1N0ZENGIDw8Ci9BdXRoRXZlbnQgL0RvY09wZW4KL0NGTSAvQUVTVjIKL0xlbmd0aCAxNgo+Pgo+PgovU3RtRiAvU3RkQ0YKL1N0ckYgL1N0ZENGCj4+CmVuZG9iagp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAxMTMgMDAwMDAgbiAKMDAwMDAwMDE3OCAwMDAwMCBuIAowMDAwMDAwMjI3IDAwMDAwIG4gCjAwMDAwMDA0MjcgMDAwMDAgbiAKMDAwMDAwMDUyNCAwMDAwMCBuIAowMDAwMDAwNzQwIDAwMDAwIG4gCjAwMDAwMDA5NDAgMDAwMDAgbiAKMDAwMDAwMTE1NiAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDMgMCBSCi9JbmZvIDEgMCBSCi9JRCBbIDwzNjYyNjY2NDM0MzIzMzMwNjMzMjM5MzYzNTM3NjEzODM5NjUzNzMyNjY2NTM2MzU2MzM0MzAzNDYxMzMzNzY2PiA8MzY2MjY2NjQzNDMyMzMzMDYzMzIzOTM2MzUzNzYxMzgzOTY1MzczMjY2NjUzNjM1NjMzNDMwMzQ2MTMzMzc2Nj4gXQovRW5jcnlwdCA5IDAgUgo+PgpzdGFydHhyZWYKMTQ2MwolJUVPRgo=';
+
+// A primeira leitura de PDF paga o import dinâmico (frio) do pdf.js, do worker e do canvas
+// nativo opcional, o que no runner Windows estoura o timeout do primeiro teste de PDF.
+// Aquecemos uma vez aqui para que o timeout de cada teste meça apenas o leitor.
+let dirAquecimento: string;
+beforeAll(async () => {
+  dirAquecimento = await fs.mkdtemp(path.join(os.tmpdir(), 'copiloto-docs-aquecimento-'));
+  await lerDocumento(await gerarPdf(dirAquecimento, ['aquecimento']));
+}, 60_000);
+afterAll(async () => {
+  await fs.rm(dirAquecimento, { recursive: true, force: true });
+});
 
 let dir: string;
 beforeEach(async () => {
